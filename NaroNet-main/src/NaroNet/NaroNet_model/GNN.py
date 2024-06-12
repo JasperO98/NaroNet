@@ -1,4 +1,9 @@
+import os
+os.environ['PYTORCH_CUDA_ALLOC_CONF'] = 'max_split_size_mb:512'
+
 import torch
+torch.cuda.empty_cache()
+
 import torch.nn.functional as F
 from NaroNet.NaroNet_model.torch_geometric_rusty import JumpingKnowledge, uniform
 
@@ -816,7 +821,8 @@ class phenoNN8(torch.nn.Module):
         x = F.dropout(x, p=args['dropoutRate'], training=self.training)
         return conv0_2(x)        
 
-    def forward(self, x_raw, edge_index, device, num_nodes,args):                       
+    def forward(self, x_raw, edge_index, device, num_nodes,args):         
+        #print(type(x))              
         x = self.MLPintoFeatures(x_raw, self.conv1MLP, self.conv1_2MLP, self.conv1MLPBN, args)
         x = self.MLPintoFeatures(x, self.conv2MLP, self.conv2_2MLP, self.conv2MLPBN, args) + x
         x = self.MLPintoFeatures(x, self.conv3MLP, self.conv3_2MLP, self.conv3MLPBN, args) + x
@@ -972,6 +978,3 @@ class GloRe_Unit(torch.nn.Module):
         out = x + self.blocker(self.conv_extend(x_state))
         out = out.permute(0, 2, 1)
         return out
-    
-    
-

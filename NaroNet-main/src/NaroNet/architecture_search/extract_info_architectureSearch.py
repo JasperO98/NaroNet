@@ -185,6 +185,7 @@ def topk_performing_architectures(frame, mode,topk):
     
     return parameters_all, frame_topk
 
+
 def extract_best_result(load_dir,metric,best_params):
     '''
         Method  that extracts the best result out of all the executions 
@@ -215,6 +216,7 @@ def extract_best_result(load_dir,metric,best_params):
         return config, n_runs
     else:
         return best_params, n_runs
+
 
 if __name__ == "__main__":
     load_dir = '/home/djsanchez/ray_results/ExplainableML/'

@@ -3,6 +3,7 @@ import os.path as osp
 import copy
 import os
 import matplotlib.pyplot as plt
+plt.rcParams.update({'figure.max_open_warning': 0})
 import cv2
 from matplotlib import cm
 from scipy import stats
@@ -12,6 +13,10 @@ from tifffile.tifffile import imwrite
 import pandas as pd
 import itertools
 from skimage import filters
+import sys
+import json
+import warnings
+import random
 
 def load_cell_types_assignments(dataset, cell_type_idx, subject_info,subgraph_idx,n_cell_types, prev_cell_type_assignment):
     """
@@ -169,7 +174,8 @@ def select_patches_from_cohort(dataset,IndexAndClass,clusters):
     
     # select_patches_from_cohort
     result = parallel_process(dict_subjects,select_patches_from_cohort_,use_kwargs=True,front_num=0,desc='BioInsights: Get relevant examples of cell types') 
-
+    
+    
     # Get lists of patches
     for R in result:  
         for r_i, r in enumerate(R[0]):
@@ -321,9 +327,41 @@ def extract_topk_patches_from_cohort(dataset, CropConf, Marker_Names,cell_type):
             col = np.mod(t_n,int(k**0.5))
        
             # Assign patch to Image
-            ImwithKPatches[int(row*mult_1*dataset.patch_size+row*mult_2):int((row+1)*mult_1*dataset.patch_size+row*mult_2),int(col*mult_1*dataset.patch_size+col*mult_2):int((col+1)*mult_1*dataset.patch_size+col*mult_2),:] = CropConf_i[t][0]
-            print(CropConf_i[t][0])
-            ImwithKPatches_Norm_perPatch[int(row*mult_1*dataset.patch_size+row*mult_2):int((row+1)*mult_1*dataset.patch_size+row*mult_2),int(col*mult_1*dataset.patch_size+col*mult_2):int((col+1)*mult_1*dataset.patch_size+col*mult_2),:] = CropConf_i[t][0]/CropConf_i[t][0].max((0,1),keepdims=True)
+            ImwithKPatches[int(row*mult_1*dataset.patch_size+row*mult_2):int((row+1)*mult_1*dataset.patch_size+row*mult_2),
+                           int(col*mult_1*dataset.patch_size+col*mult_2):int((col+1)*mult_1*dataset.patch_size+col*mult_2),:] = CropConf_i[t][0]
+            denom = CropConf_i[t][0].max((0,1),keepdims=True)
+
+            ########################################################### CHECKING DENOM ################################################################
+            #sometimes denominator is [[[0 0 0 0 0 0]]]
+
+            # pathhh = "/home/carol/NaroNet-main/NaroNet-main/src/denom.json"
+            # if os.path.exists(pathhh) and os.path.getsize(pathhh) > 0:
+            #     with open(pathhh, 'r') as file:
+            #         # Load existing data and append the new data
+            #         file_data = json.load(file)
+            #         file_data.append(denom.tolist())
+            # else:
+            # # If the file doesn't exist or is empty, start a new list
+            #     file_data = denom.tolist()
+
+            # # Write the updated data back to the file
+            # with open(pathhh, 'w') as file:
+            #     json.dump(file_data, file)
+                
+            # if denom == [[[0 0 0 0 0 0]]]:
+            #     denom += sys.float_info.epsilon
+            ##########################################################################################################################################
+
+            if not np.any(denom == 0):    
+                ImwithKPatches_Norm_perPatch[int(row*mult_1*dataset.patch_size+row*mult_2):int((row+1)*mult_1*dataset.patch_size+row*mult_2),
+                                         int(col*mult_1*dataset.patch_size+col*mult_2):int((col+1)*mult_1*dataset.patch_size+col*mult_2),:] = CropConf_i[t][0]/denom
+            else:
+                denom = denom.astype(np.float64)
+                epsilon = 1e-10
+                denom[denom == 0] += epsilon
+                
+                ImwithKPatches_Norm_perPatch[int(row*mult_1*dataset.patch_size+row*mult_2):int((row+1)*mult_1*dataset.patch_size+row*mult_2),
+                                         int(col*mult_1*dataset.patch_size+col*mult_2):int((col+1)*mult_1*dataset.patch_size+col*mult_2),:] = CropConf_i[t][0]/denom
         
         if len(Marker_Names)<10:
             # Fill unassigned patches with zeroes.
@@ -352,6 +390,24 @@ def extract_topk_patches_from_cohort(dataset, CropConf, Marker_Names,cell_type):
 
     return heatmapMarkerExpression, heatmap_Colocalization
 
+#def trackjson(your_array):
+
+
+    # pathhh = "/home/carol/NaroNet-main/NaroNet-main/src/hecol_matrix.json"
+    # your_array = your_array.tolist()
+    # if os.path.exists(pathhh) and os.path.getsize(pathhh) > 0:
+    #     with open(pathhh, 'r') as file:
+    #         # Load existing data and append the new data
+    #         file_data = json.load(file)
+    #         file_data.append(your_array)
+    # else:
+    # # If the file doesn't exist or is empty, start a new list
+    #     file_data = your_array
+
+    # # Write the updated data back to the file
+    # with open(pathhh, 'w') as file:
+    #     json.dump(file_data, file)
+
 def save_heatmap_raw_and_normalized(filename, heatmap, TME_names,Colormap,Marker_Names):    
     y_ticklabels = TME_names[heatmap.sum(1)!=0]
     c_map = Colormap[:heatmap.shape[0]][heatmap.sum(1)!=0]
@@ -359,28 +415,43 @@ def save_heatmap_raw_and_normalized(filename, heatmap, TME_names,Colormap,Marker
     plt.close()
     plt.figure()
     sns.set(font_scale=1.1)
-    h_E_Fig = sns.clustermap(heatmap[heatmap.sum(1)!=0,:],col_cluster=True, row_cluster=True, row_colors=c_map,xticklabels=Marker_Names,yticklabels=y_ticklabels, linewidths=0.5, cmap="Spectral_r")            
-    h_E_Fig.savefig(filename+'_Raw.png',dpi=600) 
 
-    # Figure Heatmap Min is 0 and max is 1 Values    
-    h_E_COL_MinMax = heatmap[heatmap.sum(1)!=0,:] - heatmap[heatmap.sum(1)!=0,:].min(0,keepdims=True)
-    print(h_E_COL_MinMax)
-    h_E_COL_MinMax = h_E_COL_MinMax/h_E_COL_MinMax.max(0,keepdims=True)
-    h_E_COL_MinMax[np.isnan(h_E_COL_MinMax)] = 0 
-    plt.close()
-    plt.figure()
-    sns.set(font_scale=1.1)
-    h_E_Fig = sns.clustermap(h_E_COL_MinMax[h_E_COL_MinMax.sum(1)!=0,:],col_cluster=True, row_cluster=True, row_colors=c_map,xticklabels=Marker_Names,yticklabels=y_ticklabels, linewidths=0.5, cmap="Spectral_r")            
-    h_E_Fig.savefig(filename+'_MinMax.png',dpi=600) 
-    
-    # Figure Heatmap z-scored values
-    h_E_COL_Norm = stats.zscore(heatmap[heatmap.sum(1)!=0,:],axis=0)  
-    h_E_COL_Norm[np.isnan(h_E_COL_Norm)] = 0              
-    plt.close()
-    plt.figure()
-    sns.set(font_scale=1.1)
-    h_E_Fig = sns.clustermap(h_E_COL_Norm,col_cluster=True, vmin=-2, vmax=2, row_cluster=True, row_colors=c_map,xticklabels=Marker_Names,yticklabels=y_ticklabels, linewidths=0.5, cmap="Spectral_r")            
-    h_E_Fig.savefig(filename+'_Norm.png',dpi=600) 
+    if np.any(heatmap.sum(axis=1)):
+        
+        try:
+            # Process the heatmap
+            h_E_Fig = sns.clustermap(heatmap[heatmap.sum(1)!=0,:],col_cluster=True, row_cluster=True, row_colors=c_map,xticklabels=Marker_Names,yticklabels=y_ticklabels, linewidths=0.5, cmap="Spectral_r")            
+            h_E_Fig.savefig(filename+'_Raw.png',dpi=600) 
+
+        except Exception as e:
+            # Handle exceptions
+            print(f"At (1): an error occurred while processing the heatmap: {e}")
+        
+        # Figure Heatmap Min is 0 and max is 1 Values    
+        h_E_COL_MinMax = heatmap[heatmap.sum(1)!=0,:] - heatmap[heatmap.sum(1)!=0,:].min(0,keepdims=True)
+        h_E_COL_MinMax = h_E_COL_MinMax/h_E_COL_MinMax.max(0,keepdims=True)
+        h_E_COL_MinMax[np.isnan(h_E_COL_MinMax)] = 0 
+        plt.close()
+        plt.figure()
+        sns.set(font_scale=1.1)
+        h_E_Fig = sns.clustermap(h_E_COL_MinMax[h_E_COL_MinMax.sum(1)!=0,:],col_cluster=True, row_cluster=True, row_colors=c_map,xticklabels=Marker_Names,yticklabels=y_ticklabels, linewidths=0.5, cmap="Spectral_r")            
+        h_E_Fig.savefig(filename+'_MinMax.png',dpi=600) 
+        
+        # Figure Heatmap z-scored values
+        h_E_COL_Norm = stats.zscore(heatmap[heatmap.sum(1)!=0,:],axis=0)  
+        h_E_COL_Norm[np.isnan(h_E_COL_Norm)] = 0              
+        plt.close()
+        plt.figure()
+        sns.set(font_scale=1.1)
+        h_E_Fig = sns.clustermap(h_E_COL_Norm,col_cluster=True, vmin=-2, vmax=2, row_cluster=True, row_colors=c_map,xticklabels=Marker_Names,yticklabels=y_ticklabels, linewidths=0.5, cmap="Spectral_r")            
+        h_E_Fig.savefig(filename+'_Norm.png',dpi=600) 
+
+    else: 
+        print("Heatmap is full of 0s")
+
+
+
+
 
 def save_heatMapMarker_and_barplot(dataset, heatmapMarkerExpression, heatmapMarkerColocalization,CropConf,Marker_Names,cell_type):
     '''
@@ -395,10 +466,12 @@ def save_heatMapMarker_and_barplot(dataset, heatmapMarkerExpression, heatmapMark
     # Save heatmapmarker to disk
     for n_j, j in enumerate([25,50,99]):
         save_heatmap_raw_and_normalized(dataset.bioInsights_dir_cell_types+cell_type+'/heatmap_MarkerExpression_'+str(j), 
-                                        heatmapMarkerExpression[n_j,:,:], np.array([abrev+str(i+1) for i in range(len(CropConf))]),
+                                        heatmapMarkerExpression[n_j,:,:],
+                                        np.array([abrev+str(i+1) for i in range(len(CropConf))]),
                                         Colormap,Marker_Names)
         save_heatmap_raw_and_normalized(dataset.bioInsights_dir_cell_types+cell_type+'/heatmap_MarkerExpression_Colocalization_'+str(j), 
-                                        np.concatenate((heatmapMarkerExpression[n_j,:,:],heatmapMarkerColocalization),axis=1), np.array([abrev+str(i+1) for i in range(len(CropConf))]),
+                                        np.concatenate((heatmapMarkerExpression[n_j,:,:],heatmapMarkerColocalization),axis=1), 
+                                        np.array([abrev+str(i+1) for i in range(len(CropConf))]),
                                         Colormap,Marker_Names+['_'.join(i) for i in itertools.combinations(Marker_Names,2)])
     
     save_heatmap_raw_and_normalized(dataset.bioInsights_dir_cell_types + cell_type + '/heatmap_Colocalization', heatmapMarkerColocalization, np.array([abrev+str(i+1) for i in range(len(CropConf))]),Colormap,['_'.join(i) for i in itertools.combinations(Marker_Names,2)])

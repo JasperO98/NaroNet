@@ -20,9 +20,6 @@ from __future__ import division
 from __future__ import print_function
 
 from absl import flags
-import os
-os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
-
 import tensorflow.compat.v1 as tf
 
 from tensorflow.compiler.tf2xla.python import xla  # pylint: disable=g-direct-tensorflow-import

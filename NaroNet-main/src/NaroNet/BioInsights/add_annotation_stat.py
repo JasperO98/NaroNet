@@ -1,6 +1,7 @@
 import warnings
 
 import matplotlib.pyplot as plt
+plt.rcParams.update({'figure.max_open_warning': 0})
 from matplotlib import lines
 import matplotlib.transforms as mtransforms
 from matplotlib.font_manager import FontProperties
@@ -9,6 +10,7 @@ import pandas as pd
 import seaborn as sns
 from seaborn.utils import remove_na
 from scipy import stats
+import json
 
 DEFAULT = object()
 def raise_expected_got(expected, for_, got, error_type=ValueError):
@@ -56,6 +58,22 @@ class StatResult:
 
     def __str__(self):
         return self.formatted_output
+
+def print_vars(x, y, hue, data, order, hue_order):
+    ##Variables############################################################
+    print(type(x))
+    print(x)
+    print(type(y))
+    print(y)
+    print(type(hue))
+    print(hue)
+    print(type(data))
+    print(data)
+    print(type(order))
+    print(order)
+    print(type(hue_order))
+    print(hue_order)
+    ##EndVariables############################################################
 
 def stat_test(
     box_data1,
@@ -368,7 +386,17 @@ def add_stat_annotation(ax, plot='boxplot',
         Here we really have to duplicate seaborn code, because there is not
         direct access to the box_data in the BoxPlotter class.
         """
-        cat = box_plotter.plot_hues is None and boxName or boxName[0]
+        
+        #print(boxName)
+        #cat = box_plotter.plot_hues is None and boxName or boxName[0]
+
+        ### Added EXP2
+        if box_plotter.plot_hues is None or not isinstance(boxName, (list, tuple)):
+            # If plot_hues is None or boxName is not a list or tuple, use boxName as is
+            cat = boxName
+        else:
+            # If boxName is a list or tuple, use the first element
+            cat = boxName[0]
 
         index = box_plotter.group_names.index(cat)
         group_data = box_plotter.plot_data[index]
@@ -472,7 +500,8 @@ def add_stat_annotation(ax, plot='boxplot',
             line_offset_to_box = line_offset
     y_offset = line_offset*yrange
     y_offset_to_box = line_offset_to_box*yrange
-
+        
+    #print_vars(x, y, hue, data, order, hue_order)     
     if plot == 'boxplot':
         # Create the same plotter object as seaborn's boxplot
         box_plotter = sns.categorical._BoxPlotter(
@@ -486,6 +515,7 @@ def add_stat_annotation(ax, plot='boxplot',
             orient=None, color=None, palette=None, saturation=.75,
             errcolor=".26", errwidth=None, capsize=None, dodge=True)
 
+    
     # Build the list of box data structures with the x and ymax positions
     group_names = box_plotter.group_names
     hue_names = box_plotter.hue_names
@@ -496,6 +526,13 @@ def add_stat_annotation(ax, plot='boxplot',
         box_names = [(group_name, hue_name) for group_name in group_names for hue_name in hue_names]
         labels = ['{}_{}'.format(group_name, hue_name) for (group_name, hue_name) in box_names]
 
+    # print("####BOX NAMES######")
+    # print(box_names)
+    # print("###################")
+
+    # with open('boxnames.json', 'w') as file:
+    #     json.dump(box_names, file)
+
     box_structs = [{'box':box_names[i],
                     'label':labels[i],
                     'x':find_x_position_box(box_plotter, box_names[i]),
@@ -503,6 +540,7 @@ def add_stat_annotation(ax, plot='boxplot',
                     'ymax':np.amax(get_box_data(box_plotter, box_names[i])) if
                            len(get_box_data(box_plotter, box_names[i])) > 0 else np.nan}
                    for i in range(len(box_names))]
+    
     # Sort the box data structures by position along the x axis
     box_structs = sorted(box_structs, key=lambda x: x['x'])
     # Add the index position in the list of boxes along the x axis
@@ -544,7 +582,7 @@ def add_stat_annotation(ax, plot='boxplot',
     y_stack = []
 
     for box_struct1, box_struct2 in box_struct_pairs:
-
+        #print("#########################INSIDE FOR################################")
         box1 = box_struct1['box']
         box2 = box_struct2['box']
         label1 = box_struct1['label']
@@ -597,9 +635,9 @@ def add_stat_annotation(ax, plot='boxplot',
                 text = "{} p = {}".format('{}', pvalue_format_string).format(result.test_short_name, result.pval)
             elif text_format is None:
                 text = None
-            elif text_format is 'star':
+            elif text_format == 'star':
                 text = pval_annotation_text(result.pval, pvalue_thresholds)
-            elif text_format is 'simple':
+            elif text_format == 'simple':
                 test_short_name = show_test_name and test_short_name or ""
                 text = simple_text(result.pval, simple_format_string, pvalue_thresholds, test_short_name)
 
@@ -628,6 +666,7 @@ def add_stat_annotation(ax, plot='boxplot',
         # ax.set_ylim((ylim[0], 1.1*(y + h)))
 
         if text is not None:
+            #print("#########################TEXT NONE BRANCH################################")
             ann = ax.annotate(
                 text, xy=(np.mean([x1, x2]), y + h),
                 xytext=(0, text_offset), textcoords='offset points',
@@ -659,6 +698,7 @@ def add_stat_annotation(ax, plot='boxplot',
                 y_top_display = offset_trans.transform((0, y + h))
                 y_top_annot = ax.transData.inverted().transform(y_top_display)[1]
         else:
+            #print("#########################TEXT NONE BRANCH################################")
             y_top_annot = y + h
 
         y_stack.append(y_top_annot)    # remark: y_stack is not really necessary if we have the stack_array
@@ -670,6 +710,7 @@ def add_stat_annotation(ax, plot='boxplot',
         y_stack_arr[2, xi1:xi2 + 1] = y_stack_arr[2, xi1:xi2 + 1] + 1
 
     y_stack_max = max(ymaxs)
+
     if loc == 'inside':
         ax.set_ylim((ylim[0], max(1.03*y_stack_max, ylim[1])))
     elif loc == 'outside':

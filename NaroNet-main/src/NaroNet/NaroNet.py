@@ -11,12 +11,12 @@ import time
 import copy
 
 # from adatune.mu_adam import MuAdam
+import torch
+import torch.nn as nn
 from torch.optim import Adam, SGD, AdamW
 from torch.optim.lr_scheduler import StepLR
-import torch
 
 import NaroNet.TrainValidateTest as TrainValidateTest
-
 import NaroNet.utils.utilz as utilz
 import random as rand
 from pycox.models import PCHazard
@@ -28,16 +28,19 @@ import pandas as pd
 class NaroNet:
     def __init__(self, args, device):
         self.args = utilz.transformToInt(args)
-        self.device = 'cuda:0'
+        self.device = device
 
+        #added; must be cuda:0
+        self.device = 'cuda:0'
+        
         # Obtain or create dataset.
         self.dataset = NaroNet_dataset(root=self.args['path'],patch_size=self.args['PCL_patch_size'], transform=None,
          pre_transform=None, recalculate=self.args['recalculate'], 
          superPatchEmbedding=self.args['PCL_embedding_dimensions'],experiment_label=self.args['experiment_Label'])                              
         
         # Obtain dataset statistics from the last data value.
+       
         self.num_total_nodes, self.edge_index_total, self.num_features, self.mean_STD, self.IndexAndClass, self.percentile, self.num_classes, self.name_labels = self.dataset.getStatistics(self.dataset.__len__())                              
-        
         self.model = NaroNet_model.NaroNet_model(self.num_features, self.name_labels, self.args["hiddens"], self.num_total_nodes, self.args["clusters"], self.args)
         
         # Save Initialization Parameters in an excel file.
@@ -94,10 +97,20 @@ class NaroNet:
             # X fold cross validation or leave-one-out
             if min([sum([1 for s in subject_level_labels if s==lbl]) for lbl in set(subject_level_labels)])<rsfk.n_splits and len(set(subject_level_labels))<5:
                 # Leave-one-out
+                #print(self.IndexAndClass)
                 ordered_names = [iac[0] for iac in self.IndexAndClass_reorder]
                 splitter = []
                 for leave_subject in range(len(subject_level_labels)):                    
                     test_names = ['.'.join(p_name.split('.')[:-1]) for p_name in patient_to_image_excel['Image_Names'][subjects[leave_subject].index]]
+
+                    # ff = open("output.txt", "a")
+                    # ff.write(list_to_string(test_names))
+                    # ff.close()
+                    # print("---------------FOLD PRINT----------------")
+                    # print(test_names)
+                    # print(ordered_names)
+                    # print("-------------------------------")
+
                     test_indices = [ordered_names.index(t) for t in test_names]
                     train_indices = [iac for iac in range(len(self.IndexAndClass)) if not iac in test_indices]
                     splitter.append((train_indices,test_indices))                    
@@ -134,6 +147,33 @@ class NaroNet:
         rand.shuffle(splitter)
         return splitter
     
+    @staticmethod
+    def get_test_instances(fold_nr):
+        patient_indices = [
+            [0,1,2],
+            [3,4],
+            [5,6,7,8,9],
+            [10,11],
+            [12,13],
+            [14,15,16],
+            [17,18],
+            [19,20,21,22,23,24,25],
+            [26,27,28,29],
+            [30,31],
+            [32,33],
+            [34,35,36,37],
+            [38,39,40]]
+        return np.array(patient_indices[fold_nr])
+
+    def get_indices(self, fold_nr):
+        # Indices are in a <class 'numpy.ndarray'>
+
+        test_ind = self.get_test_instances(fold_nr)
+        train_ind = np.array(list(set(range(41))-set(test_ind)))
+        
+        return train_ind, test_ind
+
+
     def initialize_fold(self,n_validation_samples):
         '''
         Initialize variable to run a specific fold.
@@ -150,15 +190,63 @@ class NaroNet:
         # Start timer for this fold
         self.t_start_fold = time.perf_counter()
         
+        #added fold selection - to be commented for EXP1
+        self.Train_indices, self.Test_indices = self.get_indices(self.fold)
+
+        # print("*********************************** DATA *******************")
+        # print(self.IndexAndClass)
+        # print("*********************************** END *******************")
+
+        # print("*********************************** LABELS initial *******************")
+        # print(self.labels)
+        # print("*********************************** END *******************")
+        
+        # print("*********************************** Train indices initial *******************")
+        # print(self.Train_indices)
+        # print("*********************************** END *******************")
+
+        # print("*********************************** Test indices initial *******************")
+        # print(self.Test_indices)
+        # print("*********************************** END *******************")
+
+
         # Obtain Train and Test Indices from IndexAndClass
         self.Train_indices = [self.IndexAndClass[i][1] for i in self.Train_indices]
         self.Test_indices = [self.IndexAndClass[i][1] for i in self.Test_indices]
         rand.shuffle(self.Train_indices)
+        
+        # print("*********************************** Train_indices *******************")
+        # print(self.Train_indices)
+        # print("*********************************** END *******************")
+        # print("*********************************** Test_indices *******************")
+        # print(self.Test_indices)
+        # print("*********************************** END *******************")
+        #added to solve labels issue NOT REQUIRED ANYMORE
+        # self.Train_indices = [0, 1, 2, 3, 4, 6]
+        # self.Test_indices = [5, 7, 8, 9, 10, 11]
 
         # Balance train dataset with the same number of classes.
         ros = RandomOverSampler()
-        self.Train_indices, _ = ros.fit_resample(np.expand_dims(np.array(self.Train_indices),1), [self.labels[i][0] for i in self.Train_indices])
+        x_trainn = np.expand_dims(np.array(self.Train_indices),1)
+        y_trainn = [self.labels[i][0] for i in self.Train_indices]
+        
+        # print("*********************************** Test indices initial *******************")
+        # print(self.Test_indices)
+        # print("*********************************** END *******************")
+
+        # print("*********************************** x_train *******************")
+        # print(x_trainn)
+        # print("*********************************** END *******************")
+        # print("*********************************** y_train *******************")
+        # print(y_trainn)
+        # print("*********************************** END *******************")
+
+        self.Train_indices, _ = ros.fit_resample(x_trainn, y_trainn)
         self.Train_indices = list(self.Train_indices.squeeze())
+
+        # print("*********************************** Train indices final *******************")
+        # print(self.Train_indices)
+        # print("*********************************** END *******************")
 
         # Eliminate those subjects that are not included in the experiment.
         for n in range(len(self.labels[0])):
@@ -267,8 +355,11 @@ class NaroNet:
                         self.model.to(self.device)                        
                         self.dict_fold_now = None
                         
+                        #ADDED
+                        current_iteration = bar_folds.n
+
                         # Initialize Fold iteration.
-                        self.initialize_fold(n_validation_samples)                        
+                        self.initialize_fold(current_iteration)                        
                         
                         bar_epochs.update(-bar_epochs.last_print_n)
                         bar_train_acc.update(-bar_train_acc.last_print_n)
@@ -396,7 +487,7 @@ def run_NaroNet(path,parameters):
 
     # Set the device to run the Neural Network.
     device =  torch.device(parameters["device"] if torch.cuda.is_available() else "cpu")
-
+    
     # Load the model.
     N = NaroNet(parameters, device)
     N.epoch = 0

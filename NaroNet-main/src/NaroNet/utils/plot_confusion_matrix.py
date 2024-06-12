@@ -202,6 +202,16 @@ def pretty_plot_confusion_matrix(df_cm, annot=True, cmap="Oranges", fmt='.2f', f
     plt.tight_layout()  #set layout slim    
     return plt
 #
+def save_conf_matrix(y_test, predictions):
+    import pickle
+    # Ensure both inputs are numpy arrays
+    if not isinstance(y_test, np.ndarray):
+        y_test = np.array(y_test)
+    if not isinstance(predictions, np.ndarray):
+        predictions = np.array(predictions)
+    
+    # Save the numpy arrays to a file
+    np.savez('data_arrays.npz', y_test=y_test, predictions=predictions)
 
 def plot_confusion_matrix_from_data(y_test, predictions, columns=None, annot=True, cmap="Oranges",
       fmt='.2f', fz=18, lw=0.5, cbar=False, figsize=[8,8], show_null_values=0, pred_val_axis='lin'):
@@ -219,7 +229,8 @@ def plot_confusion_matrix_from_data(y_test, predictions, columns=None, annot=Tru
         #labels axis string:
         from string import ascii_uppercase
         columns = ['class %s' %(i) for i in list(ascii_uppercase)[0:len(np.unique(y_test))]]
-
+        
+    save_conf_matrix(y_test, predictions)
     confm = confusion_matrix(y_test, predictions)
     cmap = 'Oranges'
     fz = 18

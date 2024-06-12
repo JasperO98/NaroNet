@@ -20,8 +20,6 @@ from __future__ import division
 from __future__ import print_function
 
 import re
-import os
-os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 import tensorflow.compat.v1 as tf
 
 EETA_DEFAULT = 0.001

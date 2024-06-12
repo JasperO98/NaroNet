@@ -2,6 +2,7 @@ import os
 import os.path as osp
 
 import torch
+
 import torch.nn as nn
 from torch.autograd import Variable
 from torch_geometric.data import Dataset, Data
@@ -15,7 +16,7 @@ from matplotlib import cm
 from matplotlib import colors
 import matplotlib as mpl
 from skimage import io
-#import xlrd
+import xlrd
 import seaborn as sns
 from sklearn.cluster import KMeans
 from scipy.cluster.hierarchy import dendrogram, linkage
@@ -175,7 +176,7 @@ class NaroNet_dataset(torch.utils.data.Dataset):
                 
         self.patch_size = patch_size
         self.SuperPatchEmbedding = superPatchEmbedding
-        self.root = root#osp.expanduser(osp.normpath(root))
+        self.root = root #osp.expanduser(osp.normpath(root))
         self.transform = transform
         self.context_size = patch_size+1
         self.recalculate = recalculate
@@ -184,6 +185,7 @@ class NaroNet_dataset(torch.utils.data.Dataset):
 
         self.raw_dir = osp.join(osp.join(self.root,'Patch_Contrastive_Learning'),'Image_Patch_Representation')
         self.processed_dir = osp.join(osp.join(self.root,'NaroNet'),'_'.join(experiment_label))
+        
         self.processed_dir_graphs = self.processed_dir+'/Subject_graphs/'
         self.processed_dir_cross_validation = self.processed_dir+'/Cross_validation_results/'
         self.processed_dir_cell_types = self.processed_dir+'/Cell_type_assignment/'
@@ -436,7 +438,7 @@ class NaroNet_dataset(torch.utils.data.Dataset):
                         if sum(Truexy==True)<2:
                             continue
 
-                        # Generate graph using selected cells
+                        # Generate graph using selected cells                        
                         edge_index = radius_graph(x=torch.tensor(file[np.squeeze(Truexy),:][:,[0,1]]), r=self.context_size, loop=True, max_num_neighbors=100)  
                         
                         # Avoid repeated patches.
@@ -457,11 +459,13 @@ class NaroNet_dataset(torch.utils.data.Dataset):
                         # Obtain the number of maximum nodes, so far.
                         if num_total_nodes<data.num_nodes:
                             num_total_nodes=data.num_nodes
+                            #print(num_total_nodes)
                         data.num_total_nodes=num_total_nodes
 
                         # Obtain the number of maximum edges, so far.
                         if edge_index_total<data.edge_index.shape[1]:
                             edge_index_total=data.edge_index.shape[1]
+                            #print(edge_index_total)
                         data.edge_index_total=edge_index_total
                                                 
                         # data.num_classes = data.y.shape
@@ -504,6 +508,7 @@ class NaroNet_dataset(torch.utils.data.Dataset):
                         torch.save(data, osp.join(self.processed_dir_graphs, 'data_{}_{}.pt'.format(GraphIndex,SubImageIndex)))
                         SubImageIndex += 1
                 GraphIndex += 1
+
  
             break
     def saveInductiveClusters(self,InductiveClusters, fileIndex, subImId, batch_id,args):
@@ -594,10 +599,12 @@ class NaroNet_dataset(torch.utils.data.Dataset):
             axis=1),col_cluster=False, row_colors=labels_colors, linewidths=0, cmap="vlag")      
         elif len(clusters)==2:
             heatmapClusterPresence_Fig = sns.clustermap(np.concatenate((heatmapClusterPresence[str(clusters[0])],heatmapAttPresence[str(clusters[0])],
-            heatmapClusterPresence[str(clusters[1])],heatmapAttPresence[str(clusters[1])]),axis=1),col_cluster=False, row_colors=labels_colors, linewidths=0, cmap="vlag")
+            heatmapClusterPresence[str(clusters[1])],heatmapAttPresence[str(clusters[1])]),axis=1),col_cluster=False,
+            row_colors=labels_colors, linewidths=0, cmap="vlag")            
         elif len(clusters)==3:
             heatmapClusterPresence_Fig = sns.clustermap(np.concatenate((heatmapClusterPresence[str(clusters[0])],heatmapAttPresence[str(clusters[0])],
-            heatmapClusterPresence[str(clusters[1])],heatmapAttPresence[str(clusters[1])],heatmapClusterPresence[str(clusters[2])], heatmapAttPresence[str(clusters[2])]),axis=1),col_cluster=False, row_colors=labels_colors, linewidths=0, cmap="vlag")
+            heatmapClusterPresence[str(clusters[1])],heatmapAttPresence[str(clusters[1])],heatmapClusterPresence[str(clusters[2])],
+            heatmapAttPresence[str(clusters[2])]),axis=1),col_cluster=False, row_colors=labels_colors, linewidths=0, cmap="vlag")  
         for label in list(set(labels[str(clusters[0])])):
             heatmapClusterPresence_Fig.ax_col_dendrogram.bar(0, 0, color=labels_lut[str(label)], label=label, linewidth=0)
         heatmapClusterPresence_Fig.ax_col_dendrogram.legend(title='Class', loc="center", ncol=5, bbox_to_anchor=(0.47, 0.8), bbox_transform=plt.gcf().transFigure)
@@ -1007,7 +1014,7 @@ class NaroNet_dataset(torch.utils.data.Dataset):
                 IndexAndClass_Best_and_Worst = [[],[],[],[]]
             elif num_classes==3:
                 IndexAndClass_Best_and_Worst = [[],[],[],[],[],[]]
-
+            
             # Choose the sample that best and worst fits the model.s
             for c in range(num_classes):
                 maxVal = unrestrictedLoss.mean()
@@ -1021,7 +1028,7 @@ class NaroNet_dataset(torch.utils.data.Dataset):
                             maxVal=unrestrictedLoss[n]
                             IndexAndClass_Best_and_Worst[1+c*2]= ind  # Worst Sample in class
         return IndexAndClass_Best_and_Worst
-
+            
     def ObtainPhenoExamples(self,IndexAndClass,clusters):
         '''
         Show information for each phenotype and neighborhood.
@@ -1053,18 +1060,12 @@ class NaroNet_dataset(torch.utils.data.Dataset):
         # Eliminate those patients 
         IndexAndClass = [iac for iac in IndexAndClass if 'None'!=iac[2][0]]
         
-        # # Obtain Neigh-to-Pheno, and Area-to-Neigh heatmap.
-        # for ClusteringTrheshold in [0,50,75,90,95]:
-        #     Area_to_Neighborhood_to_Phenotype(self,clusters,IndexAndClass,num_classes,ClusteringTrheshold)
+        # Obtain Neigh-to-Pheno, and Area-to-Neigh heatmap.
+        for ClusteringTrheshold in [0,50,75,90,95]:
+            Area_to_Neighborhood_to_Phenotype(self,clusters,IndexAndClass,num_classes,ClusteringTrheshold)
 
-        if ('GBM' in self.raw_dir) or ('KIRC' in self.raw_dir) or ('Endometrial' in self.raw_dir):
-            # Obtain Phenotype Map
-            self.HeatmapMarkerExpression(clusters[0],IndexAndClass,num_classes,0,'Phenotypes')        
-            self.HeatmapMarkerExpression(clusters[1],IndexAndClass,num_classes,0,'Neighborhoods')
-        else:
-            # Obtain cell-types examples
-            self.ObtainPhenoExamples(IndexAndClass,clusters)    
-            
+        # Obtain cell-types examples
+        self.ObtainPhenoExamples(IndexAndClass,clusters)     
         
         # Cell-types abundances
         heatmapClusterPresence, labels = self.clusterPresence(clusters, IndexAndClass, num_classes,0, isTraining=False)                        
@@ -1095,7 +1096,7 @@ class NaroNet_dataset(torch.utils.data.Dataset):
         if ('Synthetic' in self.root):
             IntersectionIndex = ObtainMultivariateIntersectInSynthetic(self, Top1PerPatient, clusters, IndexAndClass, num_classes, args['isAttentionLayer'],True)
         else:
-            IndexAndClass_Best_and_Worst = self.Best_and_Worst(statisticalTest,num_classes,unrestrictedLoss)
+            IndexAndClass_Best_and_Worst = Best_and_Worst(statisticalTest,num_classes,unrestrictedLoss)
             IntersectionIndex = self.ObtainMultivariateIntersectInReal(statisticalTest, clusters, self.IndexAndClass_onePerClass, num_classes, args['isAttentionLayer'],0.5)
             IntersectionIndex = self.ObtainMultivariateIntersectInReal(statisticalTest, clusters, self.IndexAndClass_onePerClass, num_classes, args['isAttentionLayer'],0.75)
             IntersectionIndex = self.ObtainMultivariateIntersectInReal(statisticalTest, clusters, self.IndexAndClass_onePerClass, num_classes, args['isAttentionLayer'],0.95)
@@ -1112,3 +1113,6 @@ def get_BioInsights(path, parameters):
 
     # Visualize results
     N.visualize_results()
+
+
+

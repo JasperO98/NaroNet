@@ -2,13 +2,12 @@
 import argparse
 import numpy as np
 from hyperopt import hp
-    
+
 def parameters(path, debug):
 
-
-
     # args=DefaultParameters(path)
-    args= {'path': path}
+    args={}
+    args['path'] = path
 
     # Use optimized parameters depending on the experiment.
     if 'Cytof52Breast' in path:
@@ -1577,14 +1576,121 @@ def parameters(path, debug):
         args['SupervisedLearning_Lambda2'] = 0#3 if debug=='Index' else hp.choice("SupervisedLearning_Lambda2", [1,0.1, 0.01,0.001,0.0001]) if debug=='Object' else 0.001         
         args['SupervisedLearning'] = True# if debug else hp.choice("SupervisedLearning", [True,False])
 
+    elif 'Endo2' in path:  
+         # Patch contrastive learning parameters
+        args['PCL_embedding_dimensions'] = 256
+        args['PCL_batch_size']=160
+        args['PCL_epochs']= 100 #500
+
+        #reccomended to be lowered
+        args['PCL_patch_size']=15 #15
+        args['PCL_alpha_L']=1.15 # The value of alpha_L in the manuscript
+         
+        args['PCL_ZscoreNormalization']=True        
+        args['PCL_width_CNN']=2 # [1, 2, 4]           
+        args['PCL_depth_CNN']=50#4 # [1, 2, 4] 
+
+        # Label you want to infer with respect the images.
+        args['experiment_Label'] = ['POLE Mutation','Copy number variation','MSI Status','Tumour Type'] # Copy number variation, POLE Mutation, MSI Status, Tumour Type
+
+        # Optimization Parameters
+        #initially 500, 10 
+        args['num_samples_architecture_search'] = 100
+        args['epochs'] = 8 # initial 10 # if debug else hp.quniform('epochs', 5, 25, 1)
+        args['epoch'] = 0
+        args['lr_decay_factor'] = 0.5# if debug else hp.uniform('lr_decay_factor', 0, 0.75)
+        args['lr_decay_step_size'] = 12# if debug else hp.quniform('lr_decay_step_size', 2, 20, 1)        
+        args['weight_decay'] = 2 if debug=='Index' else hp.choice('weight_decay',[1,0.1,0.01,0.001,0.0001,0.00001]) if debug=='Object' else 0.01
+        args['batch_size'] = 0 if debug=='Index' else hp.choice('batch_size', [6,12,16,20]) if debug=='Object' else 6
+        args['lr'] = 2 if debug=='Index' else hp.choice('lr', [0.1,0.01,0.001,0.0001]) if debug=='Object' else 0.001
+        args['useOptimizer'] = 'ADAM' #0 if debug else hp.choice("useOptimizer", ['ADAM', 'ADAMW', 'ADABound']) # 0:ADAM, 1:ADAMW, 2:ADABound
+
+        # General
+        args['context_size'] = 15#0 if debug else hp.choice("context_size", [15])
+        args['num_classes'] = 3
+        args['MultiClass_Classification']=1
+        args['showHowNetworkIsTraining'] = False # Creates a GIF of the learning clusters!
+        args['visualizeClusters'] = True
+        args['learnSupvsdClust'] = True
+        args['recalculate'] = False
+        args['folds'] = 12
+        args['device'] = 'cuda:3'
+        args['normalizeFeats'] = 1 if debug=='Index' else hp.choice("normalizeFeats", [True,False]) if debug=='Object' else False        
+        args['normalizeCells'] = 1 if debug=='Index' else hp.choice("normalizeCells", [True,False]) if debug=='Object' else False        
+        args['Batch_Normalization'] = 0 if debug=='Index' else hp.choice("Batch_Normalization", [True,False]) if debug=='Object' else True
+        args['normalizePercentile'] = False#1 if debug else hp.choice("normalizePercentile", [True,False])
+        args['dataAugmentationPerc'] = 1 if debug=='Index' else hp.choice("dataAugmentationPerc", [0,0.0001,0.001,0.01,0.1]) if debug=='Object' else 0.0001    
+
+        # Neural Network
+        args['hiddens'] = 1 if debug=='Index' else hp.choice('hiddens', [32,44,64,86,128]) if debug=='Object' else 44                
+        args['clusters1'] = 2 if debug=='Index' else hp.choice('clusters1',[4,7,10]) if debug=='Object' else 10        
+        args['clusters2'] = 2 if debug=='Index' else hp.choice('clusters2',[3,6,9]) if debug=='Object' else 9 
+        args['clusters3'] = 1 if debug=='Index' else hp.choice('clusters3',[2,7,8]) if debug=='Object' else 7          
+        args['LSTM'] = False#0 if debug else hp.choice("LSTM", [True,False])
+        args['GLORE'] = 1 if debug=='Index' else hp.choice('GLORE',[True,False]) if debug=='Object' else False 
+        args['Phenotypes'] = True  
+        args['DeepSimple'] = False
+        args['isAttentionLayer'] = False#1 if debug else hp.choice("isAttentionLayer", [True,False])
+        args['ClusteringOrAttention'] = 0 if debug=='Index' else hp.choice("ClusteringOrAttention", [True,False]) if debug=='Object' else True        
+        args['1cell1cluster'] = 1 if debug=='Index' else hp.choice("1cell1cluster", [True,False]) if debug=='Object' else False                
+        args['dropoutRate'] = 3 if debug=='Index' else hp.choice('dropoutRate', [0.05, 0.1, 0.15, 0.2,0.25]) if debug=='Object' else 0.2        
+        args['AttntnSparsenss'] = False#1 if debug else hp.choice("AttntnSparsenss", [True,False])
+        args['attntnThreshold'] = 0 if debug=='Index' else hp.choice('attntnThreshold', [0,.2,.4,.6,.8]) if debug=='Object' else 0  
+        args['GraphConvolution'] = 0 if debug=='Index' else hp.choice('GraphConvolution', ['ResNet', 'IncepNet', 'JKNet']) if debug=='Object' else 'ResNet'                
+        args['n-hops'] = 2 if debug=='Index' else hp.choice('n-hops', [1, 2, 3]) if debug=='Object' else 3                        
+        args['modeltype'] = 'SAGE'#0 if debug else hp.choice('modeltype', ['SAGE', 'SGC']) # 0:SAGE, 1:SGC
+        args['ObjectiveCluster'] = True#1 if debug else hp.choice('ObjectiveCluster', [True, False]) # Whether to learn a X and S embedding or just the clustering
+        args['ReadoutFunction'] = False#0 if debug else hp.choice('ReadoutFunction', ['MAX', 'SUM', 'DeepSets']) # Choose the readout function    
+        args['NearestNeighborClassification'] = False#1 if debug else hp.choice('NearestNeighborClassification', [True, False]) # Use the nearest Neighbor strategy
+        args['NearestNeighborClassification_Lambda0'] = 1#0 if debug else hp.choice("NearestNeighborClassification_Lambda0", [0.1, 0.01 ,0.001, 0.0001])
+        args['NearestNeighborClassification_Lambda1'] = 1#0 if debug else hp.choice("NearestNeighborClassification_Lambda1", [0.1, 0.01, 0.001, 0.0001])
+        args['NearestNeighborClassification_Lambda2'] = 1#0 if debug else hp.choice("NearestNeighborClassification_Lambda2", [0.1, 0.01, 0.001, 0.0001])
+        args['KinNearestNeighbors'] = 5#0 if debug else hp.choice('KinNearestNeighbors', [5, 10]) # Choose number of K in nearest neighbor strategy
+        # Losses
+        args['pearsonCoeffSUP'] = False#1 if debug else hp.choice("pearsonCoeffSUP", [True,False])
+        args['pearsonCoeffUNSUP'] = False#1 if debug else hp.choice("pearsonCoeffUNSUP", [True,False])
+        args['orthoColor'] = 0 if debug=='Index' else hp.choice("orthoColor", [True,False]) if debug=='Object' else True
+        args['orthoColor_Lambda0'] = 0 if debug=='Index' else hp.choice("orthoColor_Lambda0", [0.1,0.01,0.001,0.0001,0.00001]) if debug=='Object' else 0.1                                
+        args['orthoColor_Lambda1'] = 4 if debug=='Index' else hp.choice("orthoColor_Lambda1", [0.1,0.01,0.001,0.0001,0.00001]) if debug=='Object' else 0.00001                              
+        args['ortho'] = 1 if debug=='Index' else hp.choice("ortho", [True,False]) if debug=='Object' else False                        
+        args['ortho_Lambda0'] = 0 if debug=='Index' else hp.choice("ortho_Lambda0", [0.1,0.01,0.001,0.0001,0]) if debug=='Object' else 0.1                                
+        args['ortho_Lambda1'] = 4 if debug=='Index' else hp.choice("ortho_Lambda1", [0.1,0.01,0.001,0.0001,0]) if debug=='Object' else 0                                
+        args['ortho_Lambda2'] = 4 if debug=='Index' else hp.choice("ortho_Lambda2", [0.1,0.01,0.001,0.0001,0]) if debug=='Object' else 0                                
+        args['min_Cell_entropy'] = 0 if debug=='Index' else hp.choice("min_Cell_entropy", [True,False]) if debug=='Object' else True                                        
+        args['min_Cell_entropy_Lambda0'] = 0 if debug=='Index' else hp.choice("min_Cell_entropy_Lambda0", [1,0.1,0.01,0.001,0.0001,0]) if debug=='Object' else 1   
+        args['min_Cell_entropy_Lambda1'] = 4 if debug=='Index' else hp.choice("min_Cell_entropy_Lambda1", [1,0.1,0.01,0.001,0.0001,0]) if debug=='Object' else 0.0001
+        args['min_Cell_entropy_Lambda2'] = 2 if debug=='Index' else hp.choice("min_Cell_entropy_Lambda2", [1,0.1,0.01,0.001,0.0001,0]) if debug=='Object' else 0.01
+        args['MinCut'] = 0 if debug=='Index' else hp.choice("MinCut", [True,False]) if debug=='Object' else True        
+        args['MinCut_Lambda0'] = 5 if debug=='Index' else hp.choice("MinCut_Lambda0", [1,0.1,0.01,0.001,0.0001,0]) if debug=='Object' else 0        
+        args['MinCut_Lambda1'] = 1 if debug=='Index' else hp.choice("MinCut_Lambda1", [1,0.1,0.01,0.001,0.0001,0]) if debug=='Object' else 0.1        
+        args['MinCut_Lambda2'] = 1 if debug=='Index' else hp.choice("MinCut_Lambda2", [1,0.1,0.01,0.001,0.0001,0]) if debug=='Object' else 0.1        
+        args['F-test'] = False#1 if debug else hp.choice("F-test", [True,False])
+        args['Max_Pat_Entropy'] = 1 if debug=='Index' else hp.choice('Max_Pat_Entropy', [True, False]) if debug=='Object' else False                
+        args['Max_Pat_Entropy_Lambda0'] = 4 if debug=='Index' else hp.choice("Max_Pat_Entropy_Lambda0", [1,0.1,0.01,0.001,0.0001]) if debug=='Object' else 0.0001        
+        args['Max_Pat_Entropy_Lambda1'] = 1 if debug=='Index' else hp.choice("Max_Pat_Entropy_Lambda1", [1,0.1,0.01,0.001,0.0001]) if debug=='Object' else 0.1        
+        args['Max_Pat_Entropy_Lambda2'] = 1 if debug=='Index' else hp.choice("Max_Pat_Entropy_Lambda2", [1,0.1,0.01,0.001,0.0001]) if debug=='Object' else 0.1        
+        args['UnsupContrast'] = False#1 if debug else hp.choice("UnsupContrast", [True,False])
+        args['UnsupContrast_Lambda0'] =0# 1 if debug else hp.choice("UnsupContrast_Lambda0", [1,0.1,0.01,0.001,0.0001])
+        args['UnsupContrast_Lambda1'] =0# 1 if debug else hp.choice("UnsupContrast_Lambda1", [1,0.1,0.01,0.001,0.0001])
+        args['UnsupContrast_Lambda2'] =0# 2 if debug else hp.choice("UnsupContrast_Lambda2", [1,0.1,0.01,0.001,0.0001])        
+        args['Lasso_Feat_Selection'] = 1 if debug=='Index' else hp.choice("Lasso_Feat_Selection", [True,False]) if debug=='Object' else False         
+        args['Lasso_Feat_Selection_Lambda0'] = 1 if debug=='Index' else hp.choice("Lasso_Feat_Selection_Lambda0", [1,0.1, 0.01,0.001,0]) if debug=='Object' else 0.1         
+        args['SupervisedLearning_Lambda0'] = 0 if debug=='Index' else hp.choice("SupervisedLearning_Lambda0", [1,0.1, 0.01,0.001,0.0001]) if debug=='Object' else 1         
+        args['SupervisedLearning_Lambda1'] = 0 if debug=='Index' else hp.choice("SupervisedLearning_Lambda1", [1,0.1, 0.01,0.001,0.0001]) if debug=='Object' else 1         
+        args['SupervisedLearning_Lambda2'] = 0 if debug=='Index' else hp.choice("SupervisedLearning_Lambda2", [1,0.1, 0.01,0.001,0.0001]) if debug=='Object' else 1         
+        args['SupervisedLearning_Lambda3'] = 0 if debug=='Index' else hp.choice("SupervisedLearning_Lambda3", [1,0.1, 0.01,0.001,0.0001]) if debug=='Object' else 1         
+        args['SupervisedLearning'] = True# if debug else hp.choice("SupervisedLearning", [True,False])   
 
     elif 'Endometrial_POLE' in path:            
         # Patch contrastive learning parameters
         args['PCL_embedding_dimensions'] = 256
-        args['PCL_batch_size']=80
-        args['PCL_epochs']=1000
-        args['PCL_patch_size']=15
-        args['PCL_alpha_L']=1.2 # The value of alpha_L in the manuscript
+        args['PCL_batch_size']=160
+        args['PCL_epochs']= 500 #500
+
+        #reccomended to be lowered
+        args['PCL_patch_size']=15 #15
+        args['PCL_alpha_L']=1.15 # The value of alpha_L in the manuscript
+         
         args['PCL_ZscoreNormalization']=True        
         args['PCL_width_CNN']=2 # [1, 2, 4]           
         args['PCL_depth_CNN']=50#4 # [1, 2, 4] 
@@ -1593,8 +1699,9 @@ def parameters(path, debug):
         args['experiment_Label'] = ['POLE Mutation','Copy number variation','MSI Status','Tumour Type'] # Copy number variation, POLE Mutation, MSI Status, Tumour Type
 
         # Optimization Parameters
+        #initially 500, 10 
         args['num_samples_architecture_search'] = 500
-        args['epochs'] =10# if debug else hp.quniform('epochs', 5, 25, 1)
+        args['epochs'] = 10 # initial 10 # if debug else hp.quniform('epochs', 5, 25, 1)
         args['epoch'] = 0
         args['lr_decay_factor'] = 0.5# if debug else hp.uniform('lr_decay_factor', 0, 0.75)
         args['lr_decay_step_size'] = 12# if debug else hp.quniform('lr_decay_step_size', 2, 20, 1)        
@@ -1607,12 +1714,12 @@ def parameters(path, debug):
         args['context_size'] = 15#0 if debug else hp.choice("context_size", [15])
         args['num_classes'] = 3
         args['MultiClass_Classification']=1
-        args['showHowNetworkIsTraining'] = False # Creates a GIF of the learning clusters!
+        args['showHowNetworkIsTraining'] = True # Creates a GIF of the learning clusters!
         args['visualizeClusters'] = True
         args['learnSupvsdClust'] = True
         args['recalculate'] = False
         args['folds'] = 10
-        args['device'] = 'cuda:3'
+        args['device'] = 'cuda:0'
         args['normalizeFeats'] = 1 if debug=='Index' else hp.choice("normalizeFeats", [True,False]) if debug=='Object' else False        
         args['normalizeCells'] = 1 if debug=='Index' else hp.choice("normalizeCells", [True,False]) if debug=='Object' else False        
         args['Batch_Normalization'] = 0 if debug=='Index' else hp.choice("Batch_Normalization", [True,False]) if debug=='Object' else True
@@ -1620,10 +1727,14 @@ def parameters(path, debug):
         args['dataAugmentationPerc'] = 1 if debug=='Index' else hp.choice("dataAugmentationPerc", [0,0.0001,0.001,0.01,0.1]) if debug=='Object' else 0.0001    
 
         # Neural Network
-        args['hiddens'] = 1 if debug=='Index' else hp.choice('hiddens', [32,44,64,86,128]) if debug=='Object' else 44                
+        args['hiddens'] = 1 if debug=='Index' else hp.choice('hiddens', [32,44,64,86,128]) if debug=='Object' else 44  
+
+        #Number of Clusters: 1) Phenotype 2) Neighbourhood 3) Area          
         args['clusters1'] = 2 if debug=='Index' else hp.choice('clusters1',[4,7,10]) if debug=='Object' else 10        
         args['clusters2'] = 2 if debug=='Index' else hp.choice('clusters2',[3,6,9]) if debug=='Object' else 9 
-        args['clusters3'] = 1 if debug=='Index' else hp.choice('clusters3',[2,7,8]) if debug=='Object' else 7          
+        args['clusters3'] = 1 if debug=='Index' else hp.choice('clusters3',[2,7,8]) if debug=='Object' else 7  
+
+
         args['LSTM'] = False#0 if debug else hp.choice("LSTM", [True,False])
         args['GLORE'] = 1 if debug=='Index' else hp.choice('GLORE',[True,False]) if debug=='Object' else False 
         args['Phenotypes'] = True  
@@ -1678,107 +1789,7 @@ def parameters(path, debug):
         args['SupervisedLearning_Lambda2'] = 0 if debug=='Index' else hp.choice("SupervisedLearning_Lambda2", [1,0.1, 0.01,0.001,0.0001]) if debug=='Object' else 1         
         args['SupervisedLearning_Lambda3'] = 0 if debug=='Index' else hp.choice("SupervisedLearning_Lambda3", [1,0.1, 0.01,0.001,0.0001]) if debug=='Object' else 1         
         args['SupervisedLearning'] = True# if debug else hp.choice("SupervisedLearning", [True,False])   
-   
-    elif 'Example_POLE' in path:   
-         # Patch contrastive learning parameters
-        args['PCL_embedding_dimensions'] = 256
-        args['PCL_batch_size']=80
-        args['PCL_epochs']=1000
-        args['PCL_patch_size']=15
-        args['PCL_alpha_L']=1.2 # The value of alpha_L in the manuscript
-        args['PCL_ZscoreNormalization']=True        
-        args['PCL_width_CNN']=2 # [1, 2, 4]           
-        args['PCL_depth_CNN']=50#4 # [1, 2, 4] 
 
-        # Label you want to infer with respect the images.
-        args['experiment_Label'] = ['POLE Mutation','Copy number variation','MSI Status','Tumour Type'] # Copy number variation, POLE Mutation, MSI Status, Tumour Type
-
-        # Optimization Parameters
-        args['num_samples_architecture_search'] = 500
-        args['epochs'] =10# if debug else hp.quniform('epochs', 5, 25, 1)
-        args['epoch'] = 0
-        args['lr_decay_factor'] = 0.5# if debug else hp.uniform('lr_decay_factor', 0, 0.75)
-        args['lr_decay_step_size'] = 12# if debug else hp.quniform('lr_decay_step_size', 2, 20, 1)        
-        args['weight_decay'] = 2 if debug=='Index' else hp.choice('weight_decay',[1,0.1,0.01,0.001,0.0001,0.00001]) if debug=='Object' else 0.01
-        args['batch_size'] = 0 if debug=='Index' else hp.choice('batch_size', [6,12,16,20]) if debug=='Object' else 6
-        args['lr'] = 2 if debug=='Index' else hp.choice('lr', [0.1,0.01,0.001,0.0001]) if debug=='Object' else 0.001
-        args['useOptimizer'] = 'ADAM' #0 if debug else hp.choice("useOptimizer", ['ADAM', 'ADAMW', 'ADABound']) # 0:ADAM, 1:ADAMW, 2:ADABound
-
-        # General
-        args['context_size'] = 15#0 if debug else hp.choice("context_size", [15])
-        args['num_classes'] = 3
-        args['MultiClass_Classification']=1
-        args['showHowNetworkIsTraining'] = False # Creates a GIF of the learning clusters!
-        args['visualizeClusters'] = True
-        args['learnSupvsdClust'] = True
-        args['recalculate'] = False
-        args['folds'] = 10
-        args['device'] = 'cuda:3'
-        args['normalizeFeats'] = 1 if debug=='Index' else hp.choice("normalizeFeats", [True,False]) if debug=='Object' else False        
-        args['normalizeCells'] = 1 if debug=='Index' else hp.choice("normalizeCells", [True,False]) if debug=='Object' else False        
-        args['Batch_Normalization'] = 0 if debug=='Index' else hp.choice("Batch_Normalization", [True,False]) if debug=='Object' else True
-        args['normalizePercentile'] = False#1 if debug else hp.choice("normalizePercentile", [True,False])
-        args['dataAugmentationPerc'] = 1 if debug=='Index' else hp.choice("dataAugmentationPerc", [0,0.0001,0.001,0.01,0.1]) if debug=='Object' else 0.0001    
-
-        # Neural Network
-        args['hiddens'] = 1 if debug=='Index' else hp.choice('hiddens', [32,44,64,86,128]) if debug=='Object' else 44                
-        args['clusters1'] = 2 if debug=='Index' else hp.choice('clusters1',[4,7,10]) if debug=='Object' else 10        
-        args['clusters2'] = 2 if debug=='Index' else hp.choice('clusters2',[3,6,9]) if debug=='Object' else 9 
-        args['clusters3'] = 1 if debug=='Index' else hp.choice('clusters3',[2,7,8]) if debug=='Object' else 7          
-        args['LSTM'] = False#0 if debug else hp.choice("LSTM", [True,False])
-        args['GLORE'] = 1 if debug=='Index' else hp.choice('GLORE',[True,False]) if debug=='Object' else False 
-        args['Phenotypes'] = True  
-        args['DeepSimple'] = False
-        args['isAttentionLayer'] = False#1 if debug else hp.choice("isAttentionLayer", [True,False])
-        args['ClusteringOrAttention'] = 0 if debug=='Index' else hp.choice("ClusteringOrAttention", [True,False]) if debug=='Object' else True        
-        args['1cell1cluster'] = 1 if debug=='Index' else hp.choice("1cell1cluster", [True,False]) if debug=='Object' else False                
-        args['dropoutRate'] = 3 if debug=='Index' else hp.choice('dropoutRate', [0.05, 0.1, 0.15, 0.2,0.25]) if debug=='Object' else 0.2        
-        args['AttntnSparsenss'] = False#1 if debug else hp.choice("AttntnSparsenss", [True,False])
-        args['attntnThreshold'] = 0 if debug=='Index' else hp.choice('attntnThreshold', [0,.2,.4,.6,.8]) if debug=='Object' else 0  
-        args['GraphConvolution'] = 0 if debug=='Index' else hp.choice('GraphConvolution', ['ResNet', 'IncepNet', 'JKNet']) if debug=='Object' else 'ResNet'                
-        args['n-hops'] = 2 if debug=='Index' else hp.choice('n-hops', [1, 2, 3]) if debug=='Object' else 3                        
-        args['modeltype'] = 'SAGE'#0 if debug else hp.choice('modeltype', ['SAGE', 'SGC']) # 0:SAGE, 1:SGC
-        args['ObjectiveCluster'] = True#1 if debug else hp.choice('ObjectiveCluster', [True, False]) # Whether to learn a X and S embedding or just the clustering
-        args['ReadoutFunction'] = False#0 if debug else hp.choice('ReadoutFunction', ['MAX', 'SUM', 'DeepSets']) # Choose the readout function    
-        args['NearestNeighborClassification'] = False#1 if debug else hp.choice('NearestNeighborClassification', [True, False]) # Use the nearest Neighbor strategy
-        args['NearestNeighborClassification_Lambda0'] = 1#0 if debug else hp.choice("NearestNeighborClassification_Lambda0", [0.1, 0.01 ,0.001, 0.0001])
-        args['NearestNeighborClassification_Lambda1'] = 1#0 if debug else hp.choice("NearestNeighborClassification_Lambda1", [0.1, 0.01, 0.001, 0.0001])
-        args['NearestNeighborClassification_Lambda2'] = 1#0 if debug else hp.choice("NearestNeighborClassification_Lambda2", [0.1, 0.01, 0.001, 0.0001])
-        args['KinNearestNeighbors'] = 5#0 if debug else hp.choice('KinNearestNeighbors', [5, 10]) # Choose number of K in nearest neighbor strategy
-        # Losses
-        args['pearsonCoeffSUP'] = False#1 if debug else hp.choice("pearsonCoeffSUP", [True,False])
-        args['pearsonCoeffUNSUP'] = False#1 if debug else hp.choice("pearsonCoeffUNSUP", [True,False])
-        args['orthoColor'] = 0 if debug=='Index' else hp.choice("orthoColor", [True,False]) if debug=='Object' else True
-        args['orthoColor_Lambda0'] = 0 if debug=='Index' else hp.choice("orthoColor_Lambda0", [0.1,0.01,0.001,0.0001,0.00001]) if debug=='Object' else 0.1                                
-        args['orthoColor_Lambda1'] = 4 if debug=='Index' else hp.choice("orthoColor_Lambda1", [0.1,0.01,0.001,0.0001,0.00001]) if debug=='Object' else 0.00001                              
-        args['ortho'] = 1 if debug=='Index' else hp.choice("ortho", [True,False]) if debug=='Object' else False                        
-        args['ortho_Lambda0'] = 0 if debug=='Index' else hp.choice("ortho_Lambda0", [0.1,0.01,0.001,0.0001,0]) if debug=='Object' else 0.1                                
-        args['ortho_Lambda1'] = 4 if debug=='Index' else hp.choice("ortho_Lambda1", [0.1,0.01,0.001,0.0001,0]) if debug=='Object' else 0                                
-        args['ortho_Lambda2'] = 4 if debug=='Index' else hp.choice("ortho_Lambda2", [0.1,0.01,0.001,0.0001,0]) if debug=='Object' else 0                                
-        args['min_Cell_entropy'] = 0 if debug=='Index' else hp.choice("min_Cell_entropy", [True,False]) if debug=='Object' else True                                        
-        args['min_Cell_entropy_Lambda0'] = 0 if debug=='Index' else hp.choice("min_Cell_entropy_Lambda0", [1,0.1,0.01,0.001,0.0001,0]) if debug=='Object' else 1   
-        args['min_Cell_entropy_Lambda1'] = 4 if debug=='Index' else hp.choice("min_Cell_entropy_Lambda1", [1,0.1,0.01,0.001,0.0001,0]) if debug=='Object' else 0.0001
-        args['min_Cell_entropy_Lambda2'] = 2 if debug=='Index' else hp.choice("min_Cell_entropy_Lambda2", [1,0.1,0.01,0.001,0.0001,0]) if debug=='Object' else 0.01
-        args['MinCut'] = 0 if debug=='Index' else hp.choice("MinCut", [True,False]) if debug=='Object' else True        
-        args['MinCut_Lambda0'] = 5 if debug=='Index' else hp.choice("MinCut_Lambda0", [1,0.1,0.01,0.001,0.0001,0]) if debug=='Object' else 0        
-        args['MinCut_Lambda1'] = 1 if debug=='Index' else hp.choice("MinCut_Lambda1", [1,0.1,0.01,0.001,0.0001,0]) if debug=='Object' else 0.1        
-        args['MinCut_Lambda2'] = 1 if debug=='Index' else hp.choice("MinCut_Lambda2", [1,0.1,0.01,0.001,0.0001,0]) if debug=='Object' else 0.1        
-        args['F-test'] = False#1 if debug else hp.choice("F-test", [True,False])
-        args['Max_Pat_Entropy'] = 1 if debug=='Index' else hp.choice('Max_Pat_Entropy', [True, False]) if debug=='Object' else False                
-        args['Max_Pat_Entropy_Lambda0'] = 4 if debug=='Index' else hp.choice("Max_Pat_Entropy_Lambda0", [1,0.1,0.01,0.001,0.0001]) if debug=='Object' else 0.0001        
-        args['Max_Pat_Entropy_Lambda1'] = 1 if debug=='Index' else hp.choice("Max_Pat_Entropy_Lambda1", [1,0.1,0.01,0.001,0.0001]) if debug=='Object' else 0.1        
-        args['Max_Pat_Entropy_Lambda2'] = 1 if debug=='Index' else hp.choice("Max_Pat_Entropy_Lambda2", [1,0.1,0.01,0.001,0.0001]) if debug=='Object' else 0.1        
-        args['UnsupContrast'] = False#1 if debug else hp.choice("UnsupContrast", [True,False])
-        args['UnsupContrast_Lambda0'] =0# 1 if debug else hp.choice("UnsupContrast_Lambda0", [1,0.1,0.01,0.001,0.0001])
-        args['UnsupContrast_Lambda1'] =0# 1 if debug else hp.choice("UnsupContrast_Lambda1", [1,0.1,0.01,0.001,0.0001])
-        args['UnsupContrast_Lambda2'] =0# 2 if debug else hp.choice("UnsupContrast_Lambda2", [1,0.1,0.01,0.001,0.0001])        
-        args['Lasso_Feat_Selection'] = 1 if debug=='Index' else hp.choice("Lasso_Feat_Selection", [True,False]) if debug=='Object' else False         
-        args['Lasso_Feat_Selection_Lambda0'] = 1 if debug=='Index' else hp.choice("Lasso_Feat_Selection_Lambda0", [1,0.1, 0.01,0.001,0]) if debug=='Object' else 0.1         
-        args['SupervisedLearning_Lambda0'] = 0 if debug=='Index' else hp.choice("SupervisedLearning_Lambda0", [1,0.1, 0.01,0.001,0.0001]) if debug=='Object' else 1         
-        args['SupervisedLearning_Lambda1'] = 0 if debug=='Index' else hp.choice("SupervisedLearning_Lambda1", [1,0.1, 0.01,0.001,0.0001]) if debug=='Object' else 1         
-        args['SupervisedLearning_Lambda2'] = 0 if debug=='Index' else hp.choice("SupervisedLearning_Lambda2", [1,0.1, 0.01,0.001,0.0001]) if debug=='Object' else 1         
-        args['SupervisedLearning_Lambda3'] = 0 if debug=='Index' else hp.choice("SupervisedLearning_Lambda3", [1,0.1, 0.01,0.001,0.0001]) if debug=='Object' else 1         
-        args['SupervisedLearning'] = True# if debug else hp.choice("SupervisedLearning", [True,False])   
 
     elif 'Parkinson' in path:            
         # Patch contrastive learning parameters
@@ -1882,6 +1893,7 @@ def parameters(path, debug):
         args['SupervisedLearning_Lambda2'] = 0 if debug=='Index' else hp.choice("SupervisedLearning_Lambda2", [1,0.1, 0.01,0.001,0.0001]) if debug=='Object' else 1         
         args['SupervisedLearning_Lambda3'] = 0 if debug=='Index' else hp.choice("SupervisedLearning_Lambda3", [1,0.1, 0.01,0.001,0.0001]) if debug=='Object' else 1         
         args['SupervisedLearning'] = True# if debug else hp.choice("SupervisedLearning", [True,False])   
+
 
     elif 'KIRC' in path:        
         # SuperPatch
@@ -2047,24 +2059,28 @@ def parameters(path, debug):
         args['SupervisedLearning_Lambda2'] = 0#3 if debug=='Index' else hp.choice("SupervisedLearning_Lambda2", [1,0.1, 0.01,0.001,0.0001]) if debug=='Object' else 0.001         
         args['SupervisedLearning'] = True# if debug else hp.choice("SupervisedLearning", [True,False])
 
-
+    ##lung cancer parameters
     else:
         # Patch contrastive learning parameters
         args['PCL_embedding_dimensions'] = 256
-        args['PCL_batch_size']=20
-        args['PCL_epochs']=1000
-        args['PCL_patch_size']=15
-        args['PCL_alpha_L']=1.2 # The value of alpha_L in the manuscript
+
+        #init 80, 1000
+        args['PCL_batch_size']=160
+        args['PCL_epochs']=300
+        
+        #iniialy 15, 1.2
+        args['PCL_patch_size']=32
+        args['PCL_alpha_L']=1.3 # The value of alpha_L in the manuscript
         args['PCL_ZscoreNormalization']=True        
         args['PCL_width_CNN']=2 # [1, 2, 4]           
-        args['PCL_depth_CNN']=101#4 # [1, 2, 4] 
+        args['PCL_depth_CNN']=50#4 # [1, 2, 4] 
 
         # Label you want to infer with respect the images.
-        args['experiment_Label'] = ['POLE Mutation','Copy number variation','MSI Status','Tumour Type'] # Copy number variation, POLE Mutation, MSI Status, Tumour Type
+        args['experiment_Label'] = ['Response']# Copy number variation, POLE Mutation, MSI Status, Tumour Type
 
-        # Optimization Parameters
-        args['num_samples_architecture_search'] = 2
-        args['epochs'] =10# if debug else hp.quniform('epochs', 5, 25, 1)
+        # Optimization Parameters 50 & 10 initially
+        args['num_samples_architecture_search'] = 100
+        args['epochs'] =20 # if debug else hp.quniform('epochs', 5, 25, 1)
         args['epoch'] = 0
         args['lr_decay_factor'] = 0.5# if debug else hp.uniform('lr_decay_factor', 0, 0.75)
         args['lr_decay_step_size'] = 12# if debug else hp.quniform('lr_decay_step_size', 2, 20, 1)        
@@ -2081,8 +2097,10 @@ def parameters(path, debug):
         args['visualizeClusters'] = True
         args['learnSupvsdClust'] = True
         args['recalculate'] = False
-        args['folds'] = 6
-        args['device'] = 'cuda:3'
+
+        #13 folds, 1 for each patient -> LOOCV 
+        args['folds'] = 13
+        args['device'] = 'cuda:0'
         args['normalizeFeats'] = 1 if debug=='Index' else hp.choice("normalizeFeats", [True,False]) if debug=='Object' else False        
         args['normalizeCells'] = 1 if debug=='Index' else hp.choice("normalizeCells", [True,False]) if debug=='Object' else False        
         args['Batch_Normalization'] = 0 if debug=='Index' else hp.choice("Batch_Normalization", [True,False]) if debug=='Object' else True

@@ -24,8 +24,6 @@ from absl import flags
 import random
 
 import NaroNet.Patch_Contrastive_Learning.simclr.data_util as data_util
-import os
-os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 import tensorflow.compat.v1 as tf
 import itertools
 from concurrent import futures
@@ -207,6 +205,30 @@ def build_input_fn_CHURRO_eval_nfile(is_training, batch_size, dataset, patch_siz
       index = image.eval(session=tf.Session())   
       return image, patches_position, marker_mean, files_names, patches_numbers, label, 1.0
 
+    def print_size(patches):
+      print("---------------------CHECK 1--------------------------")
+      #check 1
+      import sys
+      size_in_bytes = sys.getsizeof(patches)
+      print(f"Size of patches: {size_in_bytes / (1024 * 1024)} MB")
+
+      #check 2
+      print("---------------------CHECK 2--------------------------")
+      if isinstance(patches, np.ndarray):
+        size_in_bytes = patches.nbytes
+        print(f"Size of patches: {size_in_bytes / (1024 * 1024)} MB")
+
+      elif isinstance(patches, tf.Tensor):
+        serialized_tensor = tf.io.serialize_tensor(patches)
+        size_in_bytes = len(serialized_tensor.numpy())
+        print(f"Size of serialized patches: {size_in_bytes / (1024 * 1024)} MB")
+      
+      #check 3
+      print("---------------------CHECK 3--------------------------")
+      from pympler import asizeof
+      size_in_bytes = asizeof.asizeof(patches)
+      print(f"Size of patches: {size_in_bytes / (1024 * 1024)} MB")
+
     # Generate a list of Patches, specifying directory and patch...
     files_names = []
     patches_numbers = []
@@ -233,6 +255,7 @@ def build_input_fn_CHURRO_eval_nfile(is_training, batch_size, dataset, patch_siz
     # Create dataset using patches
     patches = np.stack(patches)
     patches = np.float32(patches)
+    #print_size(patches)#---------------------------------------------------------------------------------------------
     patches = tf.data.Dataset.from_tensor_slices(patches)     
     patches = patches.repeat(-1)    
 
@@ -286,6 +309,11 @@ def load_patches_for_step(is_training, batch_size, dataset, patch_size,n_images_
     data = np.stack([dataset.get_patches_from_image(indx) for indx in range(min(dataset.n_images,n_images_iteration))])    
     data = np.reshape(data,(data.shape[0]*data.shape[1],data.shape[2],data.shape[3],data.shape[4]))
     data = np.float32(data)
+
+    #removed in the last commit
+    #data = data - data.mean((0,1,2),keepdims=True)
+    #data = data/(data.std((0,1,2),keepdims=True)+1e-16)
+    
     data = tf.data.Dataset.from_tensor_slices(data)     
     data = data.repeat(-1)
     data = data.map(map_fn)
@@ -318,7 +346,7 @@ def build_input_fn_CHURRO_generator(is_training, batch_size, dataset, patch_size
     def map_fn(image):
       """Produces multiple transformations of the same batch."""
       # if FLAGS.train_mode == 'pretrain':     
-      print(image)
+      #print(image)
       image=np.load(dataset.ExperimentFolder+image)
       xs = []
       for _ in range(5): # Number of repetitions.
@@ -420,7 +448,7 @@ def build_input_fn_CHURRO(is_training, batch_size, dataset, patch_size):
     def map_fn(image):
       """Produces multiple transformations of the same batch."""
       # if FLAGS.train_mode == 'pretrain':     
-      print(image)
+      #print(image)
       image=np.load(dataset.ExperimentFolder+image)
       xs = []
       for _ in range(5): # Number of repetitions.

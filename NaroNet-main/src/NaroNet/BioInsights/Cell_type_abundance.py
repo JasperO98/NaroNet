@@ -4,6 +4,7 @@ import copy
 import seaborn as sns
 import os.path as osp
 import matplotlib.pyplot as plt
+plt.rcParams.update({'figure.max_open_warning': 0})
 import pandas as pd
 
 def save_celltype_abundance_per_patient(dataset, IndexAndClass, clusters, heatmapClusterPresence, labels):

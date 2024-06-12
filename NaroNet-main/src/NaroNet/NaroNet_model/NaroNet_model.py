@@ -162,6 +162,7 @@ class NaroNet_model(torch.nn.Module):
         # s = torch.where(s>3*args['attntnThreshold']/s.shape[2], s, torch.tensor([0],dtype=torch.float32).to(device))
         # print('Cluster Confidence:', s.max(-1).values.mean())
         # print('Activated Nodes:', (s.max(-1)[0]>0).sum().detach().cpu().numpy()/(s.shape[0]*s.shape[1]))
+        
         return s#/s.sum(dim=-1,keepdim=True)
 
     def sigmoidToAttn(self,s,args,device):

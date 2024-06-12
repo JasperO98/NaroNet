@@ -2,6 +2,7 @@ import os
 import numpy as np
 import copy
 import matplotlib.pyplot as plt
+plt.rcParams.update({'figure.max_open_warning': 0})
 import statistics as st
 
 def ObtainMultivariateIntersectInSynthetic(dataset, statisticalTests, clusters, IndexAndClass, num_classes, attentionLayer,isTraining):

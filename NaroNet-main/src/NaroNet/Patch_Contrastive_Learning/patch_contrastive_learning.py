@@ -1,4 +1,4 @@
-# import yaml
+
 import torch.optim as optim
 from torch.utils.data.dataset import Dataset
 import random
@@ -6,7 +6,7 @@ import os
 import numpy as np
 from imgaug import augmenters as iaa
 import torch.nn.functional as F
-#import xlrd
+import xlrd
 import pandas as pd
 import string
 from tensorboard.backend.event_processing import event_accumulator
@@ -16,14 +16,14 @@ import ctypes
 # SIMCLR_ASPAPER
 import time	
 import threading
-os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
-import tensorflow.compat.v1 as tf
+
+import tensorflow.compat.v1 as tf    
 from tensorflow.core.util import event_pb2
 from tensorflow.python.lib.io import tf_record
 from tensorflow.python.framework import tensor_util   
 tf.get_logger().setLevel('ERROR')
 tf.debugging.set_log_device_placement(True)
-from NaroNet.Patch_Contrastive_Learning.simclr import resnet_build
+from NaroNet.Patch_Contrastive_Learning.simclr import resnet
 import NaroNet.Patch_Contrastive_Learning.simclr.model_util as model_util
 import NaroNet.Patch_Contrastive_Learning.simclr.model as model_lib
 import NaroNet.Patch_Contrastive_Learning.simclr.data as data_lib
@@ -267,13 +267,13 @@ class DatasetGenerator(Dataset):
             args=(files,)
         )
     
-    def _generator(self, files):
+    def _generator(files):
         images=[]
         for indx, filee in enumerate(files):
             image = np.load(self.path+filee).squeeze()
-            xIn,yIn = np.random.randint(0, self.data.shape[0]-int(flags.FLAGS.patch_size*2)-1), np.random.randint(0,self.data.shape[1]-int(flags.FLAGS.patch_size*2)-1)
+            xIn,yIn = np.random.randint(0,data.shape[0]-int(flags.FLAGS.patch_size*2)-1), np.random.randint(0,data.shape[1]-int(flags.FLAGS.patch_size*2)-1)
             images.append(image[xIn:xIn+self.patch_size*2,yIn:yIn+self.patch_size*2,:])
-        return np.stack(images)
+        return numpy.stack(images)
 
 class MyCustomDataset(Dataset):    
     '''
@@ -301,8 +301,7 @@ class MyCustomDataset(Dataset):
         with open(self.path+'Num_patches_perImage.csv') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             for row in csv_reader:
-                if row != []:
-                    self.num_patches_inImage[row[0]]=int(row[1])
+                self.num_patches_inImage[row[0]]=int(row[1])
 
     def get_patches_from_image(self,index):
         '''
@@ -381,7 +380,6 @@ class MyCustomDataset(Dataset):
     def shuffle(self):
         random.shuffle(self.files)
 
-#not used anymore
 def perform_evaluation_v3(estimator, training, input_fn, dataset, eval_steps, model, num_classes, checkpoint_path=None):
     """Perform evaluation.
     Args:
@@ -670,7 +668,7 @@ def training_or_inference(total_steps):
     checkpoint_file = sorted(chekpointfiles, key=lambda t: -os.stat(flags.FLAGS.path+model_name+'/'+t).st_mtime)[0]
     if len(checkpoint_file)>0:
         summary_path = flags.FLAGS.path+model_name+'/'+checkpoint_file
-
+        
         # Extract train contrast acc
         steps = []
         train_contrast_acc = []
@@ -686,7 +684,7 @@ def training_or_inference(total_steps):
         # Calculate the size for the average moving window.
         n_step_between_vals = sum(np.diff(steps))/(len(steps)-1)
         window_size = (steps.shape[0]*0.15)/n_step_between_vals
-        train_contrast_acc_ws = np.convolve(train_contrast_acc, np.ones(max(int(window_size),1)), 'valid') / max(int(window_size),1)
+        train_contrast_acc_ws = np.convolve(train_contrast_acc, np.ones(max(int(window_size),1)), 'valid') / max(int(window_size),1)        
 
         # Show the model's contrast accuracy
         import matplotlib.pyplot as plt 
@@ -704,11 +702,8 @@ def training_or_inference(total_steps):
                 with tqdm(total= 1000,ascii=True, desc="PCL: Contrast Accuracy (per mille)") as bar_acc:
                     bar_step.update(steps[-2])
                     bar_acc.update(int(np.round(train_contrast_acc_ws[-1]*1000,2)))
-
-            print("# The model finalized to train.")
             return False, flags.FLAGS.path+model_name # The model finalized to train.
-        else:
-            print("# The model hasn't end to learn")
+        else:            
             return True, flags.FLAGS.path+model_name # The model hasn't end to learn
     else:
         return True, None
@@ -719,8 +714,8 @@ def load_PCL_model(epoch_steps,folder_model_dir,num_patches_epoch,dataset,checkp
     '''
 
     # Generate the model
-    resnet_build.BATCH_NORM_DECAY = flags.FLAGS.batch_norm_decay
-    model = resnet_build.resnet_v1(
+    resnet.BATCH_NORM_DECAY = flags.FLAGS.batch_norm_decay
+    model = resnet.resnet_v1(
         resnet_depth=flags.FLAGS.resnet_depth,
         width_multiplier=flags.FLAGS.width_multiplier,
         cifar_stem=True if flags.FLAGS.patch_size<64 else False,
@@ -746,7 +741,7 @@ def load_PCL_model(epoch_steps,folder_model_dir,num_patches_epoch,dataset,checkp
         # session_config=tf.ConfigProto(device_count={'GPU': 0}))#,
                             # inter_op_parallelism_threads=10,
                             # intra_op_parallelism_threads=10)))
-    if checkpoint_dir is None:
+    if checkpoint_dir==None:
         estimator = tf.estimator.tpu.TPUEstimator(
             model_lib.build_model_fn(model, 5, num_patches_epoch, dataset, folder_model_dir),
             config=run_config,
@@ -882,16 +877,10 @@ def PCL_execute(argv):
         
         # Create directory
         os.mkdir(folder_model_dir)
-
         progress = progress_bar(train_steps) 
-        progress.start()
+        progress.start() 
         estimator = load_PCL_model(epoch_steps,folder_model_dir,num_patches_epoch,dataset,None)
-        estimator.train(data_lib.load_patches_for_step(
-            True,
-            flags.FLAGS.train_batch_size, dataset,
-            flags.FLAGS.patch_size,
-            flags.FLAGS.n_images_iteration),
-            max_steps=train_steps)
+        estimator.train(data_lib.load_patches_for_step(True, flags.FLAGS.train_batch_size, dataset, flags.FLAGS.patch_size,flags.FLAGS.n_images_iteration),max_steps=train_steps)        
         progress.stop()            
     else:
         # Obtain name of the model
@@ -911,8 +900,8 @@ def PCL_execute(argv):
             estimator = load_PCL_model(epoch_steps,folder_model_dir,num_patches_epoch,dataset,checkpoint_dir)
             perform_evaluation_v4(estimator=estimator, input_fn=data_lib.build_input_fn_CHURRO_eval_nfile, dataset=dataset)
             break
-            
-def patch_contrastive_learning(path,params):
+    
+def   patch_contrastive_learning(path,params):
     '''
     Patch contrastive learning generates patch embeddings
     path: (string) that specifies the path of the folder 

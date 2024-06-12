@@ -68,7 +68,14 @@ def Mean_std_experiment(base_path,image_paths,Channels):
             minImage = [m*10 if m<0 else m/10 for m in minImage]
             maxImage = image.max(tuple(range(len(image.shape)-1)))
             maxImage = [m/10 if m<0 else m*10 for m in maxImage]
-            Global_hist = [list(np.histogram(np.concatenate((image[:,:,i].flatten(),np.arange(minImage[i],maxImage[i],(maxImage[i]-minImage[i])/1000000))),range=(minImage[i],maxImage[i]),bins=1000000)) for i in range(image.shape[-1])]                                    
+            # print(minImage)
+            # print(maxImage)
+            # print(np.shape(image))
+            Global_hist = [
+                list(np.histogram(np.concatenate((
+                image[:,:,i].flatten(),
+                np.arange(minImage[i],maxImage[i], (maxImage[i]-minImage[i])/1000000))),
+                range=(minImage[i],maxImage[i]),bins=1000000)) for i in range(image.shape[-1])]                                    
         else:
             Local_hist = [list(np.histogram(np.concatenate((image[:,:,i].flatten(),np.arange(minImage[i],maxImage[i],(maxImage[i]-minImage[i])/1000000))),range=(minImage[i],maxImage[i]),bins=1000000)) for i in range(image.shape[-1])]                                    
             for n_g_h, g_h in enumerate(Global_hist):
@@ -138,7 +145,7 @@ def apply_zscoreNorm(base_path,output_path,image_paths,Channels,mean,std,patch_s
     num_patches_perImage_p={}
     for n_im, n_patches in num_patches_perImage:
         # Assign number of patches per image.
-        num_patches_perImage_p['.'.join(image_paths[n_im].split('.')[:-1])+'.npy']=n_patches
+        num_patches_perImage_p['.'.join(image_paths[n_im].split('.')[:-1])+'.npy'] = n_patches
     
     return num_patches_perImage_p
 

@@ -5,6 +5,7 @@ from scipy import stats
 import copy
 import seaborn as sns
 import matplotlib.pyplot as plt
+plt.rcParams.update({'figure.max_open_warning': 0})
 from matplotlib import colors
 from NaroNet.BioInsights.add_annotation_stat import add_stat_annotation
 import pandas as pd
@@ -458,7 +459,18 @@ def differential_abundance_analysis(dataset, heatmapALL, labels, IndexAndClass,i
                     if len(Centroid_Values)==1:
                         heatmap_centroid[dataset.experiment_label[0]+':'+PG+'-PS'+str(SG+1)]=list(Centroid_Values)                                        
                     else:
-                        heatmap_centroid[dataset.experiment_label[0]+':'+PG+'-PS'+str(SG+1)]=list(stats.zscore(Centroid_Values,nan_policy='omit'))                                        
+                        # print("------------------------var type1-----------------------------")
+                        # print(type(dataset.experiment_label[0]))
+                        # print("------------------------end  type1-----------------------------")
+
+                        # print("------------------------var type2-----------------------------")
+                        # print(type(PG))
+                        # print("------------------------end  type2-----------------------------")
+                        
+                        ##Added str for Exp 2 heatmap
+                        #heatmap_centroid[dataset.experiment_label[0] + ':' + PG + '-PS' + str(SG + 1)] = list(stats.zscore(Centroid_Values, nan_policy='omit'))
+                        heatmap_centroid[dataset.experiment_label[0] + ':' + str(PG) + '-PS' + str(SG + 1)] = list(stats.zscore(Centroid_Values, nan_policy='omit'))        
+                                
                     indTME = 0
                     for n_TME, TME in enumerate(TME_Names):
                         for n_TME_un, TME_un in enumerate(TME.split('+')):

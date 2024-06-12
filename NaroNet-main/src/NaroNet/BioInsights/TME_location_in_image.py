@@ -3,6 +3,7 @@ import os
 import numpy as np
 import copy
 import matplotlib.pyplot as plt
+plt.rcParams.update({'figure.max_open_warning': 0})
 from matplotlib import cm
 from tifffile.tifffile import imwrite
 import matplotlib.patches as mpatches
@@ -12,9 +13,12 @@ from NaroNet.utils.parallel_process import parallel_process
 def TME_location_in_image_(dataset,thisfolder,idxclster,patchIDX, clusters,nClust,sts,statisticalTests_PerPatient,statisticalTests,unrestrictedLoss,count,Patindx):
     '''
     '''
+    # if not os.path.exists(dataset.bioInsights_dir_TME_in_image+thisfolder+idxclster[2][0]+'/'):
+    #     os.mkdir(dataset.bioInsights_dir_TME_in_image+thisfolder+idxclster[2][0]+'/')
 
-    if not os.path.exists(dataset.bioInsights_dir_TME_in_image+thisfolder+idxclster[2][0]+'/'):
-        os.mkdir(dataset.bioInsights_dir_TME_in_image+thisfolder+idxclster[2][0]+'/')
+    #Added for Exp2
+    if not os.path.exists(dataset.bioInsights_dir_TME_in_image+thisfolder+str(idxclster[2][0])+'/'):
+        os.mkdir(dataset.bioInsights_dir_TME_in_image+thisfolder+str(idxclster[2][0])+'/')
 
     # Pixel-to-cluster Matrix
     clust0 = np.load(dataset.processed_dir_cell_types+'cluster_assignmentPerPatch_Index_{}_{}_ClustLvl_{}.npy'.format(idxclster[1], 0, clusters[0]))                    
@@ -106,12 +110,15 @@ def TME_location_in_image_(dataset,thisfolder,idxclster,patchIDX, clusters,nClus
         plt.title('Histogram of Area '+str(sts[1])+' Certainty')
     plt.ylabel('Number of patches')
     #plt.axvline(x=np.percentile(clust.max(-1),thrs), color='r', linestyle='dashed', linewidth=2)
-    plt.savefig(dataset.bioInsights_dir_TME_in_image+thisfolder+idxclster[2][0]+'/Label{}_Slide{}_Patch{}_Clstrs{}_Thrs{}_Acc{}_PIR{}_Hist.png'.format(
-        idxclster[2][0],idxclster[0],patchIDX,statisticalTests['TME -h'][count],100,unrestrictedLoss[count],str(round(statisticalTests_PerPatient[Patindx][1],2))), format="PNG",dpi=200) 
+    
+    ## Added for EXP2 idxclster[2][0] -> str(idxclster[2][0])
+    
+    plt.savefig(dataset.bioInsights_dir_TME_in_image+thisfolder+str(idxclster[2][0])+'/Label{}_Slide{}_Patch{}_Clstrs{}_Thrs{}_Acc{}_PIR{}_Hist.png'.format(
+        str(idxclster[2][0]),idxclster[0],patchIDX,statisticalTests['TME -h'][count],100,unrestrictedLoss[count],str(round(statisticalTests_PerPatient[Patindx][1],2))), format="PNG",dpi=200) 
     # Save GT and Image                           
-    imwrite(dataset.bioInsights_dir_TME_in_image+thisfolder+idxclster[2][0]+'/Label{}_Slide{}_Patch{}_Clstrs{}_Acc{}_PIR{}_Images.tiff'.format(idxclster[2][0],idxclster[0],patchIDX,statisticalTests['TME -h'][count],unrestrictedLoss[count],str(round(statisticalTests_PerPatient[Patindx][1],2))),np.moveaxis(im,2,0))                                        
+    imwrite(dataset.bioInsights_dir_TME_in_image+thisfolder+str(idxclster[2][0])+'/Label{}_Slide{}_Patch{}_Clstrs{}_Acc{}_PIR{}_Images.tiff'.format(str(idxclster[2][0]),idxclster[0],patchIDX,statisticalTests['TME -h'][count],unrestrictedLoss[count],str(round(statisticalTests_PerPatient[Patindx][1],2))),np.moveaxis(im,2,0))                                        
     imtosave = Image.fromarray(np.uint8(AllClusters_2*255))
-    imtosave.save(dataset.bioInsights_dir_TME_in_image+thisfolder+idxclster[2][0]+'/Label{}_Slide{}_Patch{}_Clstrs{}_Acc{}_PIR{}_Label.tiff'.format(idxclster[2][0],idxclster[0],patchIDX,statisticalTests['TME -h'][count],unrestrictedLoss[count],str(round(statisticalTests_PerPatient[Patindx][1],2))))                
+    imtosave.save(dataset.bioInsights_dir_TME_in_image+thisfolder+str(idxclster[2][0])+'/Label{}_Slide{}_Patch{}_Clstrs{}_Acc{}_PIR{}_Label.tiff'.format(str(idxclster[2][0]),idxclster[0],patchIDX,statisticalTests['TME -h'][count],unrestrictedLoss[count],str(round(statisticalTests_PerPatient[Patindx][1],2))))                
     return 'done'
 
 def TME_location_in_image(dataset, statisticalTests, clusters, IndexAndClass,unrestrictedLoss,statisticalTests_PerPatient, num_classes, attentionLayer,ClusteringThreshold):

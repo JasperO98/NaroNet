@@ -11,13 +11,13 @@ import ray
 from NaroNet import NaroNet
 
 class NaroNet_Search(Trainable):
-    def _setup(self, parameters):  
+    def setup(self, parameters):  
         self.device = torch.device(parameters["device"] if torch.cuda.is_available() else "cpu")
         # Initialize 
         self.N = NaroNet.NaroNet(parameters, self.device)
         self.N.epoch = 0
               
-    def _train(self):
+    def step(self):
         try:
             result = self.N.epoch_validation()
         except Exception as exc:
@@ -26,18 +26,18 @@ class NaroNet_Search(Trainable):
             pass            
         return result
 
+    #modified - was empty before
     def _save(self, checkpoint_dir):        
-        return
+        # checkpoint_path = os.path.join(checkpoint_dir, "model.pth")
+        # torch.save(self.N.state_dict(), checkpoint_path)
+        return #checkpoint_path
 
 def architecture_search(path,best_parameters,possible_parameters):
-
+    
     # Metric to optimize
-    metric ='maximize_acc_interpretability' if 'Synthetic' in path else 'test_Cross_entropy' #"loss_test"
+    metric ='maximize_acc_interpretability' if 'Synthetic' in path else 'test_Cross_entropy' #  "loss_test"
     #metric = 'test_Cross_entropy'
-
-    #CHANGED: there are no 4 GPUS available anyways -------------------------------------------------------------
-    num_gpus = 1 # if 'Synthetic' in path else 4
-
+    num_gpus = 1 if 'Synthetic' in path else 4
     best_parameters['device'] = best_parameters['device'] if 'Synthetic' in path else 'cuda'
     possible_parameters['device'] = possible_parameters['device'] if 'Synthetic' in path else 'cuda'
 
@@ -49,14 +49,16 @@ def architecture_search(path,best_parameters,possible_parameters):
         os.mkdir(architecture_search_path_save)
     else:
         best_result, n_runs = extract_best_result(architecture_search_path+'NaroNet_Search/',metric,best_parameters)
-        if n_runs>10 and len(os.listdir(architecture_search_path_save))==0:
-            save_architecture_search_stats(architecture_search_path_save, architecture_search_path+'NaroNet_Search/',5)
+        if (n_runs>10 and len(os.listdir(architecture_search_path_save))==0):
+            save_architecture_search_stats(architecture_search_path_save,architecture_search_path+'NaroNet_Search/',5)
         if n_runs>best_parameters['num_samples_architecture_search']*0.9:
             return best_result
 
     # Restart Ray defensively in case the ray connection is lost. 
     ray.shutdown()  
-    ray.init(address="local", local_mode=False, num_gpus=num_gpus,_redis_password="!YHLQMDLG!_#potter#_#717^_()hisltxo")#gpu_ids=[1, 2]) # Local address
+    
+    #modified removed from parameters: local_mode=False, num_gpus=num_gpus, _redis_password="!YHLQMDLG!_#potter#_#717^_()hisltxo"
+    ray.init(num_gpus=num_gpus)#, gpu_ids=[1, 2]) # Local address
     
     # Set Scheduler
     scheduler=ASHAScheduler(time_attr="epoch",max_t=best_parameters['epochs']-2, metric=metric, mode="min")        
@@ -66,13 +68,15 @@ def architecture_search(path,best_parameters,possible_parameters):
     search_algo = ConcurrencyLimiter(search_algo, max_concurrent=num_gpus if num_gpus>0 else 1)
 
     # Running parameters
+    #modified changed local_dir to storage_path
     runIt = {"num_samples": best_parameters['num_samples_architecture_search'], 
-    "resources_per_trial":{"gpu": 1 if num_gpus>0 else 0, "cpu":1}, "checkpoint_freq":0, "local_dir":architecture_search_path} 
+
+    "resources_per_trial":{"gpu": 1 if num_gpus>0 else 0, "cpu":1}, "checkpoint_freq":0, "storage_path":architecture_search_path} 
     sync_config = tune.SyncConfig()
     
     # Obtain the best hyperparameters
     analysis = tune.run(NaroNet_Search,scheduler=scheduler,search_alg=search_algo,sync_config=sync_config,**runIt)
-    print("-----------------------------------after tune.run-------------------------------------------------")
+
     # Obtain best result parameters
     best_result, n_runs = extract_best_result(architecture_search_path+'NaroNet_Search/',metric,best_parameters)
     return best_result

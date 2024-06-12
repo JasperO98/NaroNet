@@ -1,5 +1,3 @@
-import torch
-import torch_geometric
 
 def run_NaroNet(path,parameters):
     '''

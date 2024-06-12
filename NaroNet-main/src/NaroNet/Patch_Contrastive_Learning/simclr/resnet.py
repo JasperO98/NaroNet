@@ -25,8 +25,6 @@ from __future__ import division
 from __future__ import print_function
 
 from absl import flags
-import os
-os.environ['TF_FORCE_GPU_ALLOW_GROWTH'] = 'true'
 import tensorflow.compat.v1 as tf
 
 from tensorflow.python.tpu import tpu_function  # pylint: disable=g-direct-tensorflow-import
@@ -273,7 +271,6 @@ def conv2d_fixed_padding(inputs, filters, kernel_size, strides,
     inputs = fixed_padding(inputs, kernel_size, data_format=data_format)
 
   return tf.layers.conv2d(
-  #return tf.keras.layers.Conv2D(
       inputs=inputs, filters=filters, kernel_size=kernel_size, strides=strides,
       padding=('SAME' if strides == 1 else 'VALID'), use_bias=False,
       kernel_initializer=tf.variance_scaling_initializer(),
@@ -591,9 +588,7 @@ def resnet_v1_generator(block_fn, layers, width_multiplier,
     # The activation is 7x7 so this is a global average pool.
     # TODO(huangyp): reduce_mean will be faster.
     pool_size = (inputs.shape[1], inputs.shape[2])
-
     inputs = tf.layers.average_pooling2d(
-    #inputs = tf.keras.layers.AveragePooling2D(
         inputs=inputs, pool_size=pool_size, strides=1, padding='VALID',
         data_format=data_format)
     inputs = tf.identity(inputs, 'final_avg_pool')
