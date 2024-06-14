@@ -14,29 +14,13 @@ My license?
 * Linux. Tested on Ubuntu ?
 * NVIDIA GPU. Tested on ? compared to the server of the authors: Nvidia GeForce RTX 2080 Ti x 4 on GPU server)
 
-To install NaroNet we recommend creating a new [*anaconda*](https://www.anaconda.com/distribution/) environment with Pytorch (v.1.4.0 or newer). For GPU support, install the versions of CUDA that are compatible with Pytorch's versions.
+To run the experiments an [*anaconda*](https://www.anaconda.com/distribution/) environment is recommended. You can create one starting from the descriptive file.
+
 ```sh
-conda create --name NaroNet python=3.8
+conda env create -f rerunnaro.yaml
 ```
 
-Once inside the created environment, install pytorch and pytorch-geometric:
-```sh
-conda install pytorch torchvision torchaudio torchvision cudatoolkit=11.3 -c pytorch
-conda install pyg -c pyg
-```
-
-Now you can install the following libraries using pip:
-```sh
-pip install hyperopt
-pip install xlsxwriter
-pip install matplotlib
-pip install seaborn
-pip install imgaug
-sudo apt-get install python3-opencv 
-pip install tensorboard
-pip install openTSNE
-pip install openpyxl
-```
+To run the Exp 3...
 
 ## Preparing datasets
 Create the target folder (e.g., 'DATASET_DATA_DIR') with your image and subject-level information using the following folder structure:
