@@ -1,16 +1,18 @@
 # NaroNet: discovery of tumor microenvironment elements from highly multiplexed images.
+
+This Readme file closely follows the structure of the original NaroNet Readme, with some minor adjustments
 ***Summary:*** NaroNet is an end-to-end interpretable learning method that can be used for the discovery of elements from the tumor microenvironment (phenotypes, cellular neighborhoods, and tissue areas) that have the highest predictive ability to classify subjects into predefined types. NaroNet works without any ROI extraction or patch-level annotation, just needing multiplex images and their corresponding subject-level labels. See our [*paper*](https://www.sciencedirect.com/science/article/pii/S1361841522000366) for further description of NaroNet.  
 
 <img src='https://github.com/djimenezsanchez/NaroNet/blob/main/images/Method_Overview_big.png' />
 
-© [Daniel Jiménez Sánchez] - This code is made available under the GNU GPLv3 License and is available for non-commercial academic purposes. 
+My license?
 
 ## Index (the usage of this code is explained step by step) 
 [Requirements and installation](#Requirements-and-installation) • [Preparing datasets](#Preparing-datasets) • [Preparing parameter configuration](#Preparing-parameter-configuration) • [Preprocessing](#Preprocessing) • [Patch Contrastive Learning](#Patch-Contrastive-Learning) • [NaroNet](#NaroNet) • [BioInsights](#BioInsights) • [Demo](#Demo)  • [Cite](#Citation) 
 
 ## Requirements and installation
-* Linux (Tested on Ubuntu 18.04)
-* NVIDIA GPU (Tested on Nvidia GeForce RTX 2080 Ti x 4 on GPU server, and Nvidia P100, K80 GPUs on Google Cloud)
+* Linux. Tested on Ubuntu ?
+* NVIDIA GPU. Tested on ? compared to the server of the authors: Nvidia GeForce RTX 2080 Ti x 4 on GPU server)
 
 To install NaroNet we recommend creating a new [*anaconda*](https://www.anaconda.com/distribution/) environment with Pytorch (v.1.4.0 or newer). For GPU support, install the versions of CUDA that are compatible with Pytorch's versions.
 ```sh
