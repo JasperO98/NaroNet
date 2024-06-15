@@ -1,4 +1,4 @@
-name: dcec
+name: idec
 channels:
   - conda-forge
   - defaults
