@@ -17,22 +17,43 @@ My license?
 To run the experiments an [*anaconda*](https://www.anaconda.com/distribution/) environment is recommended. You can create one starting from the descriptive file. The environment "rerunnaro" was used for Exp1 and Exp2. 
 
 Step 1: Create the environment
+
 ```sh
 conda env create -f rerunnaro.yaml
+conda activate rerunnaro
 ```
 Step 2: Train the PCL component
-Step 3: PCL inference process. With the trained weights, the model generates the embeddings.
-Step 4: 
 
-The environment "idec" was used for Experiment 3, only to to reconstruct the embeddings. When generating the embeddings with the PCL component and running the GNN component, the environment should be changed to "rerunnaro"
+Step 3: PCL inference process. With the trained weights, the model generates the embeddings
+
+Step 4: Run NaroNet and get BioInsights
+
+The environment "idec" was used for Experiment 3, only to to reconstruct the embeddings. When generating the embeddings with the PCL component and running the GNN component, the environment should be changed to "rerunnaro".
 
 Step 1: Create the environment
 ```sh
-conda env create -f rerunnaro.yaml
+conda env create -f idec.yaml
+conda activate rerunnaro
 ```
-Step 2: Train the PCL component
+
+Step 2: Train the PCL component (!! with the initial environment)
+
 Step 3: PCL inference process. With the trained weights, the model generates the embeddings.
-Step 4: 
+
+Step 4: Switch the environment
+
+```sh
+conda activate idec
+```
+Step 5: ?? Get the embeddings
+
+Step i: Switch the environment back
+
+```sh
+conda activate rerunnaro
+```
+
+Step i+1: Run NaroNet and get BioInsights (as previously)
 
 ## Preparing datasets
 Create the target folder (e.g., 'DATASET_DATA_DIR') with your image and subject-level information using the following folder structure:
