@@ -14,13 +14,18 @@ My license?
 * Linux. Tested on Ubuntu ?
 * NVIDIA GPU. Tested on ? compared to the server of the authors: Nvidia GeForce RTX 2080 Ti x 4 on GPU server)
 
-To run the experiments an [*anaconda*](https://www.anaconda.com/distribution/) environment is recommended. You can create one starting from the descriptive file.
+To run the experiments an [*anaconda*](https://www.anaconda.com/distribution/) environment is recommended. You can create one starting from the descriptive file. The environment "rerunnaro" was used for Exp1 and Exp2. 
+
 
 ```sh
 conda env create -f rerunnaro.yaml
 ```
 
-To run the Exp 3...
+The environment "idec" was used for Experiment 3, only to to reconstruct the embeddings. When generating the embeddings with the PCL component and running the GNN component, the environment should be changed to "rerunnaro"
+
+```sh
+conda env create -f rerunnaro.yaml
+```
 
 ## Preparing datasets
 Create the target folder (e.g., 'DATASET_DATA_DIR') with your image and subject-level information using the following folder structure:
