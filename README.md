@@ -56,7 +56,7 @@ cd your_path/NaroNet/NaroNet-main/src/main.py
 python3 main.py
 ```
 
-Step 3: PCL inference process. With the trained weights, the model generates the embeddings. Run the main.py file in the same configuration and virtual environment.
+Step 3: PCL inference process. With the trained weights, the model generates the embeddings. Run the main.py file again in the same configuration and virtual environment.
 
 Step 4: Run NaroNet and get BioInsights. Here, the commented methods are #1, #2. 
 
@@ -68,9 +68,14 @@ conda env create -f idec.yaml
 conda activate rerunnaro
 ```
 
-Step 2: Train the PCL component (with the initial environment !!)
+Step 2: Train the PCL component (with the initial environment !!). Here, the commented methods in the NaroNet main.py file are #3, #4 and #5.
 
-Step 3: PCL inference process. With the trained weights, the model generates the embeddings.
+```sh
+cd your_path/NaroNet/NaroNet-main/src/main.py
+python3 main.py
+```
+
+Step 3: PCL inference process. With the trained weights, the model generates the embeddings. Run the main.py file again as in Step 2.
 
 Step 4: Run the three cells from "Column-wise processing" section in the [file](https://github.com/CarolRameder/NaroNet/blob/main/EXP3/Pipeline.ipynb). This normalizes the embedding to the scale required by the Auto Encoder(AE) component. All the embeddings from all images in the dataset are merged in one ".npy". This is the input format for the AE.
 
@@ -102,6 +107,11 @@ conda activate rerunnaro
 ```
 
 Step 11: Run NaroNet and get BioInsights (as previously). Here, the commented methods in the NaroNet main.py file are #1 and #2. 
+
+```sh
+cd your_path/NaroNet/NaroNet-main/src/main.py
+python3 main.py
+```
 
 ## Preparing datasets
 Create the target folder (e.g., 'DATASET_DATA_DIR') with your image and subject-level information using the following folder structure:
