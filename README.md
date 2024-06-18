@@ -14,7 +14,7 @@ This Readme file closely follows the structure of the original NaroNet Readme, w
 <img src='https://github.com/djimenezsanchez/NaroNet/blob/main/images/Method_Overview_big.png' />
 
 ## Index (the usage of this code is explained step by step) 
-[Requirements and installation](#Requirements-and-installation) • [Preparing datasets](#Preparing-datasets) • [Preparing parameter configuration](#Preparing-parameter-configuration) • [Preprocessing](#Preprocessing) • [Patch Contrastive Learning](#Patch-Contrastive-Learning) • [NaroNet](#NaroNet) • [BioInsights](#BioInsights) • [Demo](#Demo)  • [Cite](#Citation) 
+[Requirements and installation](#Requirements-and-installation) • [Preparing datasets](#Preparing-datasets) • [Preparing parameter configuration](#Preparing-parameter-configuration) • [Preprocessing](#Preprocessing) • [Patch Contrastive Learning](#Patch-Contrastive-Learning) • [NaroNet](#NaroNet) • [BioInsights](#BioInsights) 
 
 ## Requirements and installation
 * Linux. Tested on Ubuntu 22.04.4
@@ -236,23 +236,6 @@ DATASET_DATA_DIR/
 +			└── ...
 
 ```
-## Demo
-We provide an example workflow via Jupyter notebook that illustrate how this package can be used.
 
-| Experiment name | Example Image | Dataset link | Run in google colab |
-| :-- | :-:| :-- | :-- |
-| Discover tumoral differences between patient types (POLE gene mutated vs. POLE gene non-mutated) | <img src="https://github.com/djimenezsanchez/NaroNet/blob/main/images/example_endometrial_crop.png" title="example image fluo" width="320px" align="center">  | [Endometrial cancer tissue example (download Example_POLE.zip)](https://zenodo.org/record/4630664#.YFoGLa9KiUk). |[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/djimenezsanchez/NaroNet/blob/main/examples/google_colab_example.ipynb?authuser=1) |
-
-
-## Citation
-Please cite this paper in case our method or parts of it were helpful in your work.
-```diff
-@article{jimenez2021naronet,
-  title={NaroNet: Discovery of tumor microenvironment elements from highly multiplexed images},
-  author={Jiménez-Sánchez, Daniel and Ariz, Mikel and Chang, Hang and Matias-Guiu, Xavier and de Andrea, Carlos E and Ortiz-de-Solórzano, Carlos},
-  journal={Medical image analysis, vol. 78 102384.},
-  year={2022}
-}
-```
 
 
