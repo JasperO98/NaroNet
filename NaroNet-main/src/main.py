@@ -81,7 +81,7 @@ def main(path):
 if __name__ == "__main__":
 
     #path = '/home/carol/NaroNet-main/NaroNet-main/Endometrial_POLE/'    
-    path = '/home/carol/NaroNet-main/NaroNet-main/EXP2/'    
+    path = '/home/carol/NaroNet/NaroNet-main/EXP2/'    
     
     #path = '/home/carol/NaroNet-main/NaroNet-main/Endo2/'  
     #path = '/home/carol/NaroNet-main/NaroNet-main/Example_POLE/'
