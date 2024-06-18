@@ -22,6 +22,23 @@ This Readme file closely follows the structure of the original NaroNet Readme, w
 
 An [*anaconda*](https://www.anaconda.com/distribution/) environment is recommended to run the experiments. You can create one starting from the descriptive file. The environment "rerunnaro" was used for Exp1 and Exp2. 
 
+```python
+#1
+preprocess_images(path,params['PCL_ZscoreNormalization'],params['PCL_patch_size'])
+
+#2
+patch_contrastive_learning(path,params)    
+
+#3
+params = architecture_search(path,params,possible_params)
+
+#4
+run_NaroNet(path,params)
+
+#5
+get_BioInsights(path,params)
+```
+
 Step 1: Create the environment
 
 ```sh
@@ -29,6 +46,7 @@ conda env create -f rerunnaro.yaml
 conda activate rerunnaro
 ```
 Step 2: Train the PCL component
+
 
 Step 3: PCL inference process. With the trained weights, the model generates the embeddings
 
