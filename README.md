@@ -129,7 +129,7 @@ Marker_4
 | ... | ... | ... |
 
 ## Preparing parameter configuration
-In the following sections (i.e., preprocessing, PCL, NaroNet, BioInsights) several parameters are required to be set. Although parameters will be explained in each section, all of them should be specified in the file named 'DatasetParameters.py', which is located in the folder 'NaroNet/src/utils'. Change it to your own configuration, where 'DATASET_DATA_DIR' is your target folder. See example [file](https://github.com/djimenezsanchez/NaroNet/blob/main/src/NaroNet/utils/DatasetParameters.py) or example below:
+In the following sections (i.e., preprocessing, PCL, NaroNet, BioInsights) several parameters are required to be set. Although parameters will be explained in each section, all of them should be specified in the file named 'DatasetParameters.py', which is located in the folder 'NaroNet/src/utils'. Change it to your own configuration, where 'DATASET_DATA_DIR' is your target folder. See example [file](https://github.com/CarolRameder/NaroNet/blob/main/NaroNet-main/src/NaroNet/utils/DatasetParameters.py) or example below:
 ```python
 def parameters(path, debug):
     if 'DATASET_DATA_DIR' in path:        
