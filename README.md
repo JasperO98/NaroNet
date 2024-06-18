@@ -1,20 +1,26 @@
-# NaroNet: discovery of tumor microenvironment elements from highly multiplexed images.
+# Benchmarking, improving and expanding the application of Naronet.
 
-This Readme file closely follows the structure of the original NaroNet Readme, with some minor adjustments
-***Summary:*** NaroNet is an end-to-end interpretable learning method that can be used for the discovery of elements from the tumor microenvironment (phenotypes, cellular neighborhoods, and tissue areas) that have the highest predictive ability to classify subjects into predefined types. NaroNet works without any ROI extraction or patch-level annotation, just needing multiplex images and their corresponding subject-level labels. See our [*paper*](https://www.sciencedirect.com/science/article/pii/S1361841522000366) for further description of NaroNet.  
+In this file, we present the steps followed to :
+<ol>
+<li>Reproduce the NaroNet experiment with the Endometrial Carcinoma dataset (Exp1)</li>
+<li>Preprocess a Lung cancer in-house dataset to make predictions with NaroNet (Exp2)</li>
+<li>Reconstruct the embedding space of the PCL component aiming to improve the accuracy prediction of the system (Exp3)</li>
+</ol>
+
+This Readme file closely follows the structure of the original NaroNet Readme, with some minor adjustments. The code repository for the NaroNet implementation can be accessed [*here*](https://github.com/djimenezsanchez/NaroNet/tree/main)
+
+***Summary:*** NaroNet is an end-to-end interpretable learning method that can be used for the discovery of elements from the tumor microenvironment (phenotypes, cellular neighborhoods, and tissue areas) that have the highest predictive ability to classify subjects into predefined types. NaroNet works without any ROI extraction or patch-level annotation, just needing multiplex images and their corresponding subject-level labels. See the [*paper*](https://www.sciencedirect.com/science/article/pii/S1361841522000366) for further description of NaroNet.  
 
 <img src='https://github.com/djimenezsanchez/NaroNet/blob/main/images/Method_Overview_big.png' />
-
-My license?
 
 ## Index (the usage of this code is explained step by step) 
 [Requirements and installation](#Requirements-and-installation) • [Preparing datasets](#Preparing-datasets) • [Preparing parameter configuration](#Preparing-parameter-configuration) • [Preprocessing](#Preprocessing) • [Patch Contrastive Learning](#Patch-Contrastive-Learning) • [NaroNet](#NaroNet) • [BioInsights](#BioInsights) • [Demo](#Demo)  • [Cite](#Citation) 
 
 ## Requirements and installation
-* Linux. Tested on Ubuntu ?
-* NVIDIA GPU. Tested on ? compared to the server of the authors: Nvidia GeForce RTX 2080 Ti x 4 on GPU server)
+* Linux. Tested on Ubuntu 22.04.4
+* NVIDIA GPU. Tested on NVIDIA RTX A6000 compared to the server of the authors: Nvidia GeForce RTX 2080 Ti x 4 on GPU server)
 
-To run the experiments an [*anaconda*](https://www.anaconda.com/distribution/) environment is recommended. You can create one starting from the descriptive file. The environment "rerunnaro" was used for Exp1 and Exp2. 
+An [*anaconda*](https://www.anaconda.com/distribution/) environment is recommended to run the experiments. You can create one starting from the descriptive file. The environment "rerunnaro" was used for Exp1 and Exp2. 
 
 Step 1: Create the environment
 
