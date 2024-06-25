@@ -4,7 +4,7 @@ In this file, we present the steps followed to :
 <ol>
 <li>Reproduce the NaroNet experiment with the Endometrial Carcinoma dataset (Exp1)</li>
 <li>Preprocess a Lung cancer in-house dataset to make predictions with NaroNet (Exp2)</li>
-<li>Reconstruct the embedding space of the PCL component with an AutoEncoder () component aiming to improve the accuracy prediction of the system (Exp3)</li>
+<li>Reconstruct the embedding space of the PCL component with an AutoEncoder (AE) component aiming to improve the accuracy prediction of the system (Exp3)</li>
 </ol>
 
 This Readme file closely follows the structure of the original NaroNet Readme, with some minor adjustments. The code repository for the NaroNet implementation can be accessed [*here*](https://github.com/djimenezsanchez/NaroNet/tree/main). The code for the AE component can be found [*here*](https://github.com/XifengGuo/IDEC-toy).
