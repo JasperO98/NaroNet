@@ -4,10 +4,10 @@ In this file, we present the steps followed to :
 <ol>
 <li>Reproduce the NaroNet experiment with the Endometrial Carcinoma dataset (Exp1)</li>
 <li>Preprocess a Lung cancer in-house dataset to make predictions with NaroNet (Exp2)</li>
-<li>Reconstruct the embedding space of the PCL component aiming to improve the accuracy prediction of the system (Exp3)</li>
+<li>Reconstruct the embedding space of the PCL component with an AutoEncoder () component aiming to improve the accuracy prediction of the system (Exp3)</li>
 </ol>
 
-This Readme file closely follows the structure of the original NaroNet Readme, with some minor adjustments. The code repository for the NaroNet implementation can be accessed [*here*](https://github.com/djimenezsanchez/NaroNet/tree/main).
+This Readme file closely follows the structure of the original NaroNet Readme, with some minor adjustments. The code repository for the NaroNet implementation can be accessed [*here*](https://github.com/djimenezsanchez/NaroNet/tree/main). The code for the AE component can be found [*here*](https://github.com/XifengGuo/IDEC-toy).
 
 ***Summary:*** NaroNet is an end-to-end interpretable learning method that can be used for the discovery of elements from the tumor microenvironment (phenotypes, cellular neighborhoods, and tissue areas) that have the highest predictive ability to classify subjects into predefined types. NaroNet works without any ROI extraction or patch-level annotation, just needing multiplex images and their corresponding subject-level labels. See the [*paper*](https://www.sciencedirect.com/science/article/pii/S1361841522000366) for further description of NaroNet.  
 
