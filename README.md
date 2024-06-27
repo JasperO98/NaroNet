@@ -43,6 +43,8 @@ run_NaroNet(path,params)
 get_BioInsights(path,params)
 ```
 
+# Exp 1
+
 Step 1: Create the environment
 
 ```sh
@@ -93,6 +95,8 @@ run_NaroNet(path,params)
 #5
 get_BioInsights(path,params)
 ```
+
+# Exp 3
 
 The environment "idec" was used for Experiment 3, only to to reconstruct the embeddings. When generating the embeddings with the PCL component and running the GNN component, the environment should be changed to "rerunnaro". The instructions regarding the methods in the main.py apply here as well. 
 
