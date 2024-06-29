@@ -206,9 +206,9 @@ DATASET_DATA_DIR/
 		
 ```
 In the 'Raw_Data/Images' folder we expect multiplex image data consisting of multi-page '.tiff' files with one channel/marker per page.
-In the 'Raw_Data/Masks' folder put masks with the same size as the images with the same name, with 1's for the pixels that should be analyzed and 0's for the pixels that should be ignored.
+In the 'Raw_Data/Masks' folder masks with the same size as the images with the same name can be stored. These should have 1's for the pixels that should be analyzed and 0's for the pixels that should be ignored.
 In the 'Raw_Data/Experiment_Information' two files are expected:
-* Channels.txt contains per row the name of each marker/channel present in the multiplex image. In case the name of the row is 'None' it will be ignored and not loaded from the raw image. See example [file](https://github.com/djimenezsanchez/NaroNet/blob/main/examples/Channels.txt) or example below:
+* Channels.txt contains per row the name of each marker/channel present in the multiplex image. In case the name of the row is 'None' it will be ignored and not loaded from the raw image. See example [files](https://github.com/djimenezsanchez/NaroNet/blob/main/examples/Channels.txt) or example below:
 ```bash
 Marker_1
 Marker_2 
@@ -225,7 +225,7 @@ Marker_4
 | image_3.tiff | Treatment | High |
 | ... | ... | ... |
 
-* Patient_to_Image.xlsx (optional) can be utilized in case more than one image is available per subject and you want to merge them into one subject graph. When images have the same subject identifier (e.g., 'Subject_Name') they will be joined into one disjoint graph. Please notice that when this file exists, you should change the 'Image_Names' column in 'Image_Labels.xlsx' with the new subject names (e.g., change 'image_1.tiff' with 'subject_1'). See example [file](https://github.com/djimenezsanchez/NaroNet/blob/main/examples/Patient_to_Image.xlsx) or example below:
+* Patient_to_Image.xlsx (optional) can be utilized in case more than one image is available per subject and you want to merge them into one subject graph. When images have the same subject identifier (e.g., 'Subject_Name') they will be joined into one disjoint graph. Please notice that when this file exists, you should change the 'Image_Names' column in 'Image_Labels.xlsx' with the new subject names (e.g., change 'image_1.tiff' with 'subject_1'). See example files in the [folder](https://github.com/CarolRameder/NaroNet/tree/main/Metadata%20for%20multiple%20images%20per%20patient) or the  small example below:
 
 | Image_Name | Subject_Name |
 | :-- | :-:| 
