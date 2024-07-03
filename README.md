@@ -24,8 +24,6 @@ An [*anaconda*](https://www.anaconda.com/distribution/) environment is recommend
 
 There are 5 main methods called in the main.py file. We will refer to them according to the numbers to indicate how they should be commented on at a specific stage of the experiment. 
 
-
-The path value should be set to 'DATASET_DATA_DIR' as shown in line 83 from [file](https://github.com/CarolRameder/NaroNet/blob/main/NaroNet-main/src/main.py).
 ```python
 #1
 preprocess_images(path,params['PCL_ZscoreNormalization'],params['PCL_patch_size'])
@@ -42,6 +40,8 @@ run_NaroNet(path,params)
 #5
 get_BioInsights(path,params)
 ```
+
+The path value should be set to 'DATASET_DATA_DIR' as shown in line 83 from [file](https://github.com/CarolRameder/NaroNet/blob/main/NaroNet-main/src/main.py).
 
 # Exp 1
 
