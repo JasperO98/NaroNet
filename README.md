@@ -14,13 +14,76 @@ This Readme file closely follows the structure of the original NaroNet Readme, w
 <img src='https://github.com/djimenezsanchez/NaroNet/blob/main/images/Method_Overview_big.png' />
 
 ## Index (the usage of this code is explained step by step) 
-[Requirements and installation](#Requirements-and-installation) • [Preparing datasets](#Preparing-datasets) • [Preparing parameter configuration](#Preparing-parameter-configuration) • [Preprocessing](#Preprocessing) • [Patch Contrastive Learning](#Patch-Contrastive-Learning) • [NaroNet](#NaroNet) • [BioInsights](#BioInsights) 
+[Requirements and installation](#Requirements-and-installation) • [Preparing datasets](#Preparing-datasets) • [Preparing parameter configuration](#Preparing-parameter-configuration) •[Running the experiments](#Running-the-experiments) • [Patch Contrastive Learning](#Patch-Contrastive-Learning) • [NaroNet](#NaroNet) • [BioInsights](#BioInsights) 
 
 ## Requirements and installation
 * Linux. Tested on Ubuntu 22.04.4
 * NVIDIA GPU. Tested on NVIDIA RTX A6000 compared to the server of the authors: Nvidia GeForce RTX 2080 Ti x 4 on GPU server)
 
 An [*anaconda*](https://www.anaconda.com/distribution/) environment is recommended to run the experiments. You can create one starting from the descriptive file. The environment "rerunnaro" was used for Exp1 and Exp2. 
+
+## Preparing datasets
+Create the target folder (e.g., 'DATASET_DATA_DIR') with your image and subject-level information using the following folder structure:
+
+```bash
+DATASET_DATA_DIR/
+    └──Raw_Data/
+        ├── Images/
+                ├── image_1.tiff
+                ├── image_2.tiff
+                └── ...
+	├── Masks/ (Optional)
+                ├── image_1.tiff
+                ├── image_2.tiff
+                └── ...
+        └── Experiment_Information/
+                ├── Channels.txt                
+                ├── Image_Labels.xlsx
+		└── Patient_to_Image.xlsx (Optional)
+		
+```
+In the 'Raw_Data/Images' folder we expect multiplex image data consisting of multi-page '.tiff' files with one channel/marker per page.
+In the 'Raw_Data/Masks' folder masks with the same size as the images with the same name can be stored. These should have 1's for the pixels that should be analyzed and 0's for the pixels that should be ignored.
+In the 'Raw_Data/Experiment_Information' two files are expected:
+* Channels.txt contains per row the name of each marker/channel present in the multiplex image. In case the name of the row is 'None' it will be ignored and not loaded from the raw image. See example [files](https://github.com/djimenezsanchez/NaroNet/blob/main/examples/Channels.txt) or example below:
+```bash
+Marker_1
+Marker_2 
+None
+Marker_4    
+```
+
+* Image_Labels.xlsx contains the image names and their corresponding image-level labels. In column 'Image_Names' image names are specified. The next columns (e.g., 'Control vs. Treatment', 'Survival', etc.) specify image-level information, where 'None' means that the image is excluded from the experiment. In case more than one image is available per subject and you want to make sure that images from the same subject don't go to different train/val/test splits, it is possible to add one column named "Subject_Names" specifying, for each image, the subject to whom it corresponds. See example [file](https://github.com/djimenezsanchez/NaroNet/blob/main/examples/Image_Labels.xlsx) or example below:
+
+| Image_Names | Control vs. Treatment | Survival | 
+| :-- | :-:| :-: |
+| image_1.tiff | Control  | Poor |
+| image_2.tiff | None | High |
+| image_3.tiff | Treatment | High |
+| ... | ... | ... |
+
+* Patient_to_Image.xlsx (optional) can be utilized in case more than one image is available per subject and you want to merge them into one subject graph. When images have the same subject identifier (e.g., 'Subject_Name') they will be joined into one disjoint graph. Please notice that when this file exists, you should change the 'Image_Names' column in 'Image_Labels.xlsx' with the new subject names (e.g., change 'image_1.tiff' with 'subject_1'). See example files in the [folder](https://github.com/CarolRameder/NaroNet/tree/main/Metadata%20for%20multiple%20images%20per%20patient) or the  small example below:
+
+| Image_Name | Subject_Name |
+| :-- | :-:| 
+| image_1.tiff | subject_1 |
+| image_2.tiff | subject_1 | 
+| image_3.tiff | subject_2 | 
+| ... | ... | ... |
+
+This setup was tried with the hardware configuration mentioned in [Requirements and installation](#Requirements-and-installation). It raised a GPU memory overload issue for Exp1 and Exp2 as the Graphs get too large to be loaded.
+
+## Preparing parameter configuration
+In the following sections (i.e., preprocessing, PCL, NaroNet, BioInsights) several parameters are required to be set. Although parameters will be explained in each section, all of them should be specified in the file named 'DatasetParameters.py', which is located in the folder 'NaroNet/src/utils'. Change it to your own configuration, where 'DATASET_DATA_DIR' is your target folder. See example [file](https://github.com/CarolRameder/NaroNet/blob/main/NaroNet-main/src/NaroNet/utils/DatasetParameters.py) or example below:
+```python
+def parameters(path, debug):
+    if 'DATASET_DATA_DIR' in path:        
+        args['param1'] = value1
+	args['param2'] = value2
+	...		
+```
+
+## Running the experiments
 
 There are 5 main methods called in the main.py file. We will refer to them according to the numbers to indicate how they should be commented on at a specific stage of the experiment. 
 
@@ -43,7 +106,11 @@ get_BioInsights(path,params)
 
 The path value should be set to 'DATASET_DATA_DIR' as shown in line 83 from [file](https://github.com/CarolRameder/NaroNet/blob/main/NaroNet-main/src/main.py).
 
-# Exp 1
+```python
+path = '/home/carol/NaroNet-main/NaroNet-main/Endometrial_POLE/'   
+```
+
+# Exp 1 and Exp2
 
 Step 1: Create the environment
 
@@ -132,7 +199,51 @@ python3 main.py
 
 Step 3: PCL inference process. With the trained weights, the model generates the embeddings. Rerun the main.py file as in Step 2.
 
-Step 4: Run the three cells from "Column-wise processing" section in the [file](https://github.com/CarolRameder/NaroNet/blob/main/EXP3/Pipeline.ipynb). This normalizes the embedding to the scale required by the Auto Encoder(AE) component. All the embeddings from all images in the dataset are merged in one ".npy". This is the input format for the AE.
+Step 4: Run the three cells (pasted below) from the "Column-wise processing" section in the [file](https://github.com/CarolRameder/NaroNet/blob/main/EXP3/Pipeline.ipynb). This normalizes the embedding to the scale required by the Auto Encoder(AE) component. All the embeddings from all images in the dataset are merged in one ".npy". This is the input format for the AE.
+
+```python
+#merging outputs of the PCL to the AE format
+#PCL -> AE
+def load(folder_path):
+    all_data = []
+    min_val, max_val = -10, 7.5
+    for file_name in os.listdir(folder_path):
+        if file_name.endswith(".npy"):
+            file_path = os.path.join(folder_path, file_name)
+            data = np.load(file_path)
+
+
+            for line in data:
+                all_data.append(line)
+    
+    # Concatenate all data
+    all_data = np.vstack(all_data)
+    
+    return all_data
+
+folder_path = '/home/carol/NaroNet-main/NaroNet-main/Endometrial_POLE/Patch_Contrastive_Learning/Image_Patch_Representation'
+allembs = load(folder_path)
+print(np.shape(allembs))
+np.save('ConcInp_noNorm.npy', allembs)
+```
+
+```python
+def normal(data):
+    # Assuming `data` is your (300k, 256) NumPy array
+    data_min = data.min(axis=0)  # Minimum value of each column
+    data_max = data.max(axis=0)  # Maximum value of each column
+
+    # Min-Max normalization to scale data to the [0, 1] range
+    data_normalized = (data - data_min) / (data_max - data_min)
+
+    # Handle potential divisions by zero if a column is constant
+    data_normalized = np.nan_to_num(data_normalized, nan=0.0)
+    return data_normalized
+
+data = np.load("/home/carol/NaroNet-main/EXP3/ConcInp_noNorm.npy")
+normal_data  = normal(data)
+np.save('ConcInpCol.npy', normal_data)
+```
 
 Step 5: Check if the path for the AE is set correctly in the "load_embs" from [file](https://github.com/CarolRameder/NaroNet/blob/main/EXP3/IDEC-toy/datasets.py). The path should point to the ".npy" file generated in Step 4.
 
@@ -142,7 +253,19 @@ Step 6: Switch the environment
 conda activate idec
 ```
 
-For this experiment, you can set the hyperparameters by setting the default values of the argument parser to the desired values and not adding any other argument to the second command line from Step 7. This can be done from line 190 in [file](https://github.com/CarolRameder/NaroNet/blob/main/EXP3/IDEC-toy/IDEC.py).
+For this experiment, you can set the hyperparameters by setting the default values of the argument parser to the desired values and not adding any other argument to the second command line from Step 7. This can be done from line 190 to line 198 in [file](https://github.com/CarolRameder/NaroNet/blob/main/EXP3/IDEC-toy/IDEC.py), as shown below:
+
+```python
+parser.add_argument('--n_clusters', default=10, type=int)
+parser.add_argument('--batch_size', default=256, type=int)
+parser.add_argument('--maxiter', default=2e4, type=int)
+parser.add_argument('--pretrain_epochs', default=10, type=int)
+parser.add_argument('--gamma', default=0.08, type=float, help='coefficient of clustering loss')
+parser.add_argument('--update_interval', default=0, type=int)
+parser.add_argument('--tol', default=0.001, type=float)
+parser.add_argument('--ae_weights', default=None)
+parser.add_argument('--save_dir', default='results/embs')
+```
 
 Step 7: Run the AE to get the reconstructed embeddings
 
@@ -183,67 +306,6 @@ get_BioInsights(path,params)
 ```sh
 cd your_path/NaroNet/NaroNet-main/src/main.py
 python3 main.py
-```
-
-## Preparing datasets
-Create the target folder (e.g., 'DATASET_DATA_DIR') with your image and subject-level information using the following folder structure:
-
-```bash
-DATASET_DATA_DIR/
-    └──Raw_Data/
-        ├── Images/
-                ├── image_1.tiff
-                ├── image_2.tiff
-                └── ...
-	├── Masks/ (Optional)
-                ├── image_1.tiff
-                ├── image_2.tiff
-                └── ...
-        └── Experiment_Information/
-                ├── Channels.txt                
-                ├── Image_Labels.xlsx
-		└── Patient_to_Image.xlsx (Optional)
-		
-```
-In the 'Raw_Data/Images' folder we expect multiplex image data consisting of multi-page '.tiff' files with one channel/marker per page.
-In the 'Raw_Data/Masks' folder masks with the same size as the images with the same name can be stored. These should have 1's for the pixels that should be analyzed and 0's for the pixels that should be ignored.
-In the 'Raw_Data/Experiment_Information' two files are expected:
-* Channels.txt contains per row the name of each marker/channel present in the multiplex image. In case the name of the row is 'None' it will be ignored and not loaded from the raw image. See example [files](https://github.com/djimenezsanchez/NaroNet/blob/main/examples/Channels.txt) or example below:
-```bash
-Marker_1
-Marker_2 
-None
-Marker_4    
-```
-
-* Image_Labels.xlsx contains the image names and their corresponding image-level labels. In column 'Image_Names' image names are specified. The next columns (e.g., 'Control vs. Treatment', 'Survival', etc.) specify image-level information, where 'None' means that the image is excluded from the experiment. In case more than one image is available per subject and you want to make sure that images from the same subject don't go to different train/val/test splits, it is possible to add one column named "Subject_Names" specifying, for each image, the subject to whom it corresponds. See example [file](https://github.com/djimenezsanchez/NaroNet/blob/main/examples/Image_Labels.xlsx) or example below:
-
-| Image_Names | Control vs. Treatment | Survival | 
-| :-- | :-:| :-: |
-| image_1.tiff | Control  | Poor |
-| image_2.tiff | None | High |
-| image_3.tiff | Treatment | High |
-| ... | ... | ... |
-
-* Patient_to_Image.xlsx (optional) can be utilized in case more than one image is available per subject and you want to merge them into one subject graph. When images have the same subject identifier (e.g., 'Subject_Name') they will be joined into one disjoint graph. Please notice that when this file exists, you should change the 'Image_Names' column in 'Image_Labels.xlsx' with the new subject names (e.g., change 'image_1.tiff' with 'subject_1'). See example files in the [folder](https://github.com/CarolRameder/NaroNet/tree/main/Metadata%20for%20multiple%20images%20per%20patient) or the  small example below:
-
-| Image_Name | Subject_Name |
-| :-- | :-:| 
-| image_1.tiff | subject_1 |
-| image_2.tiff | subject_1 | 
-| image_3.tiff | subject_2 | 
-| ... | ... | ... |
-
-This setup was tried with the hardware configuration mentioned in [Requirements and installation](#Requirements-and-installation). It raised a GPU memory overload issue for Exp1 and Exp2 as the Graphs get too large to be loaded.
-
-## Preparing parameter configuration
-In the following sections (i.e., preprocessing, PCL, NaroNet, BioInsights) several parameters are required to be set. Although parameters will be explained in each section, all of them should be specified in the file named 'DatasetParameters.py', which is located in the folder 'NaroNet/src/utils'. Change it to your own configuration, where 'DATASET_DATA_DIR' is your target folder. See example [file](https://github.com/CarolRameder/NaroNet/blob/main/NaroNet-main/src/NaroNet/utils/DatasetParameters.py) or example below:
-```python
-def parameters(path, debug):
-    if 'DATASET_DATA_DIR' in path:        
-        args['param1'] = value1
-	args['param2'] = value2
-	...		
 ```
 
 ## Patch Contrastive Learning
