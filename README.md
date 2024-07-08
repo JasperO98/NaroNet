@@ -3,8 +3,8 @@
 In this file, we present the steps followed to :
 <ol>
 <li>Reproduce the NaroNet experiment with the Endometrial Carcinoma dataset (Exp1)</li>
-<li>Preprocess a Lung cancer in-house dataset to make predictions with NaroNet (Exp2)</li>
-<li>Reconstruct the embedding space of the PCL component with an AutoEncoder (AE) component aiming to improve the accuracy prediction of the system (Exp3)</li>
+<li>Preprocess a Lung cancer in-house dataset and then make predictions with NaroNet (Exp2)</li>
+<li>Reconstruct the embedding space of the PCL component with an AutoEncoder (AE) component aiming to improve the accuracy prediction of the system. Then making predictions with NaroNet (Exp3)</li>
 </ol>
 
 This Readme file closely follows the structure of the original NaroNet Readme, with some minor adjustments. The code repository for the NaroNet implementation can be accessed [*here*](https://github.com/djimenezsanchez/NaroNet/tree/main). The code for the AE component can be found [*here*](https://github.com/XifengGuo/IDEC-toy).
@@ -111,6 +111,8 @@ path = '/home/carol/NaroNet-main/NaroNet-main/Endometrial_POLE/'
 ```
 
 # Exp 1 and Exp2
+
+The instructions required to run Exp1 and Exp2 are the same. Only the input data differs from one to the other. Exp1 consists of reproducing the NaroNet experiment with the Endometrial Carcinoma dataset. Exp2 consists of preprocessing a Lung cancer in-house dataset and then making predictions with NaroNet.
 
 Step 1: Create the environment
 
