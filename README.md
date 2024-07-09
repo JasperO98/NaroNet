@@ -329,11 +329,13 @@ for file_name in os.listdir(init_embs_path):
 
 Step 9: Replace the initial embeddings from "DATASET_DATA_DIR/Patch_Contrastive_Learning/Preprocessed_Images/" with the new embeddings from Step 8.
 This was done manually:
-a) Select all old embeddings.
-b) Delete them.
-c) Select all new embeddings from the folder created in Step 8.
-d) Copy (or cut) them
-e) Paste them in the "Preprocessed_Images" folder.
+```
+# Remove the old embeddings
+rm DATASET_DATA_DIR/Patch_Contrastive_Learning/Preprocessed_Images/*
+
+# Copy the new embeddings into the folder
+cp -rf NaroNet-main/EXP3/Data/Split reconstruction/* DATASET_DATA_DIR/Patch_Contrastive_Learning/Preprocessed_Images/.
+```
 
 Step 10: Switch the environment back
 
