@@ -278,7 +278,62 @@ python3 IDEC.py embs
 
 Step 8: Rescale the embeddings. For this, the Rescale section from [file](https://github.com/CarolRameder/NaroNet/blob/main/EXP3/Pipeline.ipynb). The embedding of each image will be generated in the "EXP3/Data/Split reconstruction" directory
 
+
+```python
+def rescale_col(data_normalized):
+    # Assuming `data_normalized` is your normalized data array
+    # Define min and max values for the rescaling process
+    min_val_first_two = -10
+    max_val_first_two = 1750
+    min_val_rest = -10
+    max_val_rest = 7.5
+
+    # Initialize an array to hold the rescaled values, same shape as `data_normalized`
+    data_rescaled = np.zeros_like(data_normalized)
+
+    # Rescale the first two columns
+    for i in range(2):
+        data_rescaled[:, i] = data_normalized[:, i] * (max_val_first_two - min_val_first_two) + min_val_first_two
+        # Cap values at 1750 for the first two columns
+        data_rescaled[:, i] = np.where(data_rescaled[:, i] > max_val_first_two, max_val_first_two, data_rescaled[:, i])
+
+    # Rescale the rest of the columns
+    for i in range(2, data_normalized.shape[1]):
+        data_rescaled[:, i] = data_normalized[:, i] * (max_val_rest - min_val_rest) + min_val_rest
+        # No specific capping mentioned for these, but you could apply similar logic if needed
+
+    # Now `data_rescaled` contains the rescaled values, with the first two columns capped at 1750
+    return data_rescaled
+```
+
+```python
+#splitting and renormalzie AE output to the Naronet format
+#AE->Naronet
+#Image patch Rep needs to be non-empty
+init_embs_path = "/home/carol/NaroNet-main/NaroNet-main/Endometrial_POLE/Patch_Contrastive_Learning/Image_Patch_Representation"
+rec_path = "/home/carol/NaroNet-main/EXP3/IDEC-toy/results/embs/reconstructed_x.npy"
+out_path = "/home/carol/NaroNet-main/EXP3/Data/Split reconstruction"
+reconstructed_embeddings = np.load(rec_path)
+reconstructed_embeddings = rescale_col(reconstructed_embeddings) #rescale to the original value range
+current_position= 0
+for file_name in os.listdir(init_embs_path):
+    file_path = os.path.join(init_embs_path, file_name)
+    cr_emb = np.load(file_path)  
+    line_count = cr_emb.shape[0]
+    
+    extracted_embeddings = reconstructed_embeddings[current_position : current_position + line_count]
+    current_position += line_count
+    new_file_path = os.path.join(out_path, file_name)
+    np.save(new_file_path, extracted_embeddings)
+```
+
 Step 9: Replace the initial embeddings from "DATASET_DATA_DIR/Patch_Contrastive_Learning/Preprocessed_Images/" with the new embeddings from Step 8.
+This was done manually:
+a) Select all old embeddings.
+b) Delete them.
+c) Select all new embeddings from the folder created in Step 8.
+d) Copy (or cut) them
+e) Paste them in the "Preprocessed_Images" folder.
 
 Step 10: Switch the environment back
 
