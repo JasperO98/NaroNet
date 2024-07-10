@@ -110,9 +110,12 @@ The path value should be set to 'DATASET_DATA_DIR' as shown in line 83 from [fil
 path = '/home/carol/NaroNet-main/NaroNet-main/Endometrial_POLE/'   
 ```
 
-# Exp 1 and Exp2
+# Exp 1
 
-The instructions required to run Exp1 and Exp2 are the same. Only the input data differs from one to the other. Exp1 consists of reproducing the NaroNet experiment with the Endometrial Carcinoma dataset. Exp2 consists of preprocessing a Lung cancer in-house dataset and then making predictions with NaroNet.
+The instructions required to run Exp1 and Exp2 are the same. Only the input data differs from one to the other. Exp1 consists of reproducing the NaroNet experiment with the Endometrial Carcinoma dataset. 
+
+
+Step 0 (Optional): Set the required hyperparameters in DatasetParameters.py. Go to the if-branch on line 1684 from [file](https://github.com/CarolRameder/NaroNet/blob/main/NaroNet-main/src/NaroNet/utils/DatasetParameters.py)
 
 Step 1: Create the environment
 
@@ -165,9 +168,52 @@ run_NaroNet(path,params)
 get_BioInsights(path,params)
 ```
 
+# Exp2
+
+Exp2 consists of preprocessing a Lung cancer in-house dataset and then making predictions with NaroNet. Besides the preprocessing steps below, running Exp2 requires the same steps as Exp1. Steps 1 to 6 pertain to preprocessing. The steps to run NaroNet on the obtained data are the same as in Exp1. 
+
+Step 0 (Optional): Set the required hyperparameters in DatasetParameters.py. Go to the if-branch on line 2063 from [file](https://github.com/CarolRameder/NaroNet/blob/main/NaroNet-main/src/NaroNet/utils/DatasetParameters.py)
+
+Step 1: Install Zeiss Zen Lite from the [link](https://www.zeiss.com/microscopy/en/products/software/zeiss-zen-lite.html)
+
+Step 2: Using Zeiss Zen Lite Interface, File -> Export image as ".tiff"
+Result: 6 separate RGB images for each “.czi” input image converted, one for each marker. One folder\patient => 13 folders. For each patient, the 4 images need to be merged into one 4-dimensional image.
+
+Step 3: 
+Paste this [script](https://github.com/CarolRameder/NaroNet/blob/main/Preprocess%20scripts/final_short_imgprocess.ipynb) in each folder from Step 2.
+
+Step 4:
+Run the only existing cell. The script will:
+- Load the .tiff image separate markers 
+- Merge the markers to the same image file
+- Save the file with the “.tif” extension
+
+Result: 13 4-dim images in the parent folder.
+Organise the outputs in the same folder for the next step. The path of the newly created folder is given as an input to the code required for Step 5.
+
+Step 5: Run the cell from this [script](https://github.com/CarolRameder/NaroNet/blob/main/Preprocess%20scripts/Preprocessing.ipynb)
+It loads the 4-dim image from Step 4
+For each marker (displayed in [preprocess diagram](https://docs.google.com/drawings/d/1h2F0KIngJ7lNj3eaZ_c-uhKcFAJ-xlN-jDCNMfXsX7U/edit?usp=sharing) in the upper part):
+- Determines the proportions for the RGB channels for the greyscale conversion
+- Merges the RGB channels into a greyscale channel 
+- Applies the rolling ball algorithm
+
+Merges the transformed markers in a single file (3-dim)
+Result: 13 3-dim images in the same folder as where the script is created.
+
+Step 6:
+Use this script for the last step, splitting the images into tiles. All the details are in this [script](https://github.com/CarolRameder/NaroNet/blob/main/Preprocess%20scripts/split_images.ipynb). The cutting positions were determined manually by selecting the region of interest areas.
+Displayed in the lower left part of the [preprocess diagram](https://docs.google.com/drawings/d/1h2F0KIngJ7lNj3eaZ_c-uhKcFAJ-xlN-jDCNMfXsX7U/edit?usp=sharing).
+
+The resulting 42 tiles will be moved to the “DATASET_DATA_DIR/Raw_Data/Images” folder as shown in the [Preparing datasets](#Preparing-datasets) Section.
+
+Step 7: Run Naronet as described in Steps 1 to 4 from the previous Section.
+
 # Exp 3
 
-The environment "idec" was used for Experiment 3, only to to reconstruct the embeddings. When generating the embeddings with the PCL component and running the GNN component, the environment should be changed to "rerunnaro". The instructions regarding the methods in the main.py apply here as well. 
+The environment "idec" was used for Experiment 3, only to to reconstruct the embeddings. When generating the embeddings with the PCL component and running the GNN component, the environment should be changed to "rerunnaro". The instructions regarding the methods in the main.py apply here as well. For this experiment, both the Endometrial Pole and the Lung Cancer datasets can be used. If the Lung cancer dataset is used, the preprocessing steps described in the section above should only be done once. 
+
+Step 0 (Optional): Set the required hyperparameters in DatasetParameters.py. Choose the if-branch according to the Dataset used.
 
 Step 1: Create the environment
 ```sh
